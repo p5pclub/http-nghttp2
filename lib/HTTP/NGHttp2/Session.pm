@@ -1,15 +1,12 @@
-package HTTP::NGHttp2;
+package HTTP::NGHttp2::Session;
 
 use strict;
 use warnings;
 
 use XSLoader;
-use parent 'Exporter';
 
 our $VERSION = '0.000001';
-XSLoader::load( 'HTTP::NGHttp2', $VERSION );
-
-our @EXPORT_OK = qw[get_info];
+XSLoader::load(__PACKAGE__, $VERSION);
 
 1;
 
@@ -21,7 +18,7 @@ __END__
 
 =head1 NAME
 
-HTTP::NGHttp2 - TODO
+HTTP::NGHttp2::Session - TODO
 
 =head1 VERSION
 

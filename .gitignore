@@ -36,3 +36,5 @@ README
 *.swp
 *.tar.gz
 wrapper.c
+session.c
+wrapper/

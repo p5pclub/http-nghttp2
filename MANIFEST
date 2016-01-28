@@ -1,9 +1,12 @@
-wrapper.xs
+session.xs
 Changes
-lib/HTTP/NGHttp2.pm
+lib/HTTP/NGHttp2/Session.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 ppport.h
 README.md
+nghttp2_session.c
+nghttp2_session.h
+typemap
