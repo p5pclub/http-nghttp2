@@ -18,7 +18,7 @@ __END__
 
 =head1 NAME
 
-HTTP::NGHttp2::Session - TODO
+HTTP::NGHttp2::Session - Perl binding for nghttp2 library
 
 =head1 VERSION
 
