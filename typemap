@@ -1,5 +1,5 @@
 # O_OBJECT	-> link an opaque C or C++ object to a blessed Perl object.
-nghttp2_session_t * O_OBJECT
+context_t * O_OBJECT
 
 ######################################################################
 OUTPUT

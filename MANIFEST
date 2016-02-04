@@ -1,4 +1,3 @@
-session.xs
 Changes
 lib/HTTP/NGHttp2/Session.pm
 LICENSE
@@ -7,6 +6,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 ppport.h
 README.md
-nghttp2_session.c
-nghttp2_session.h
+context.c
+context.h
+session.xs
 typemap
