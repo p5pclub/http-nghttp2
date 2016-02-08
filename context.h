@@ -28,5 +28,16 @@ void context_dtor(context_t* context);
 
 void context_session_open(context_t* context);
 void context_session_close(context_t* context);
+void context_session_terminate(context_t* context, int reason);
 
+int context_session_want_read(context_t* context);
+int context_session_want_write(context_t* context);
+
+/*TODO:
+nghttp2_select_next_protocol
+nghttp2_submit_settings
+nghttp2_submit_request
+nghttp2_session_send
+nghttp2_session_mem_recv (or nghttp2_session_recv)
+*/
 #endif

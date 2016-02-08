@@ -108,6 +108,40 @@ void context_session_close(context_t* context)
     context->session = 0;
 }
 
+void context_session_terminate(context_t* context, int reason)
+{
+    if (!context->session) {
+        printf("Can't terminate session, none exists\n");
+        return;
+    }
+
+    printf("Terminating session %p, reason %d\n", context->session, reason);
+    nghttp2_session_terminate_session(context->session, reason);
+}
+
+int context_session_want_read(context_t* context)
+{
+    if (!context->session) {
+        printf("Can't inquire want_read from session, none exists\n");
+        return 0;
+    }
+
+    printf("want_read for session %p\n", context->session);
+    return nghttp2_session_want_read(context->session);
+}
+
+int context_session_want_write(context_t* context)
+{
+    if (!context->session) {
+        printf("Can't inquire want_write from session, none exists\n");
+        return 0;
+    }
+
+    printf("want_write for session %p\n", context->session);
+    return nghttp2_session_want_write(context->session);
+}
+
+
 static int on_begin_headers_cb(nghttp2_session *session,
                                const nghttp2_frame *frame,
                                void *user_data)

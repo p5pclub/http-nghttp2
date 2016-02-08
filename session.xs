@@ -54,3 +54,26 @@ CODE:
 {
     context_session_close(context);
 }
+
+void
+terminate(context_t* context, int reason)
+CODE:
+{
+    context_session_terminate(context, reason);
+}
+
+int
+want_read(context_t* context)
+CODE:
+{
+    RETVAL = context_session_want_read(context);
+}
+OUTPUT: RETVAL
+
+int
+want_write(context_t* context)
+CODE:
+{
+    RETVAL = context_session_want_write(context);
+}
+OUTPUT: RETVAL
