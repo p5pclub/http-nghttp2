@@ -1,5 +1,5 @@
 /*
- * We explicitely do not define PERL_NO_GET_CONTEXT because we
+ * We explicitly do not define PERL_NO_GET_CONTEXT because we
  * are manually manipulating the stack in our callback functions.
  */
 #include "EXTERN.h"
