@@ -33,11 +33,32 @@ void context_session_terminate(context_t* context, int reason);
 int context_session_want_read(context_t* context);
 int context_session_want_write(context_t* context);
 
-/*TODO:
-nghttp2_select_next_protocol
-nghttp2_submit_settings
-nghttp2_submit_request
-nghttp2_session_send
-nghttp2_session_mem_recv (or nghttp2_session_recv)
-*/
+/*
+ * TODO: expose some other functions
+ *
+ * These are used for sure in the examples:
+ *
+ * nghttp2_select_next_protocol (maybe client-only ?) (only for SSL ?)
+ *
+ * nghttp2_session_send (why not nghttp2_session_mem_send ?)
+ * nghttp2_session_mem_recv (why not nghttp2_session_recv ?)
+ *
+ * nghttp2_submit_settings
+ * nghttp2_submit_request (maybe client-only ?)
+ * nghttp2_submit_response (server-only)
+ * nghttp2_submit_rst_stream (maybe server-only ?)
+ *
+ *
+ * Maybe also expose other existing submit functions:
+ *
+ * nghttp2_submit_headers
+ * nghttp2_submit_data
+ * nghttp2_submit_trailer
+ * nghttp2_submit_priority
+ * nghttp2_submit_ping
+ * nghttp2_submit_push_promise
+ * nghttp2_submit_goaway
+ * nghttp2_submit_window_update
+ * nghttp2_submit_shutdown_notice (server-only)
+ */
 #endif
