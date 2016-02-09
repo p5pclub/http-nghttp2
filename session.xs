@@ -30,7 +30,7 @@ CODE:
 }
 
 void
-ping(context_t* context)
+_ping(context_t* context)
 CODE:
 {
     printf("Context %p is alive!\n", context);
@@ -42,14 +42,14 @@ CODE:
 }
 
 void
-open(context_t* context)
+open_session(context_t* context)
 CODE:
 {
     context_session_open(context);
 }
 
 void
-close(context_t* context)
+close_session(context_t* context)
 CODE:
 {
     context_session_close(context);
