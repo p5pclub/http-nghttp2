@@ -33,8 +33,8 @@ void
 _ping(context_t* context)
 CODE:
 {
-    printf("Context %p is alive!\n", context);
-    printf("Age: %d, Version: %d -- [%s], Proto: [%s]\n",
+    printf("Context %p is alive -- age = %d, version = %d (%s), proto = [%s]\n",
+           context,
            context->info->age,
            context->info->version_num,
            context->info->version_str,
