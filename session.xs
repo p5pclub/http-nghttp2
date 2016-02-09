@@ -56,7 +56,7 @@ CODE:
 }
 
 void
-terminate(context_t* context, int reason)
+terminate_session(context_t* context, int reason)
 CODE:
 {
     context_session_terminate(context, reason);
