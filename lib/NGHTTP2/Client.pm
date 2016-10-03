@@ -44,6 +44,8 @@ sub _add_stream {
     return $self->{'streams'}{$stream_id} = 1;
 }
 
+## XXX: Not used yet
+## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
 sub _remove_stream {
     my ( $self, $stream_id ) = @_;
     return delete $self->{'streams'}{$stream_id};
@@ -63,11 +65,11 @@ sub fetch {
     my ( $self, $path, %callbacks ) = @_;
 
     $self->request( $path, sub {
-        my $stream = shift;
+        my ( $stream, $headers, $body ) = @_;
 
         $self->_add_stream($stream);
 
-        $callback{'on_response'}->($stream);
+        $callback{'on_response'}->( $headers, $body );
     });
 
     return;
