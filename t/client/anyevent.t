@@ -17,7 +17,9 @@ my $client = NGHTTP2::Client->new(
 $cv->begin for 1 .. 3;
 
 $client->fetch(
-    '/',
+    path        => '/',
+    method      => 'GET',
+    scheme      => 'https',
     on_response => sub {
         my ( $headers, $body ) = @_;
 
@@ -25,7 +27,9 @@ $client->fetch(
         $cv->end;
 
         $client->fetch(
-            '/',
+            path        => '/',
+            method      => 'GET',
+            scheme      => 'https'
             on_response => sub {
                 my ( $headers, $body ) = @_;
 
@@ -37,7 +41,9 @@ $client->fetch(
 );
 
 $client->fetch(
-    '/',
+    path        => '/',
+    method      => 'GET',
+    scheme      => 'https',
     on_response => sub {
         push @fetches, 2;
         $cv->end;

@@ -29,7 +29,9 @@ POE::Session->create(
             my $client = $_[HEAP]{'client'};
 
             $client->fetch(
-                '/',
+                path        => '/',
+                method      => 'GET',
+                scheme      => 'https',
                 on_response => sub {
                     my ( $headers, $body ) = @_;
 
@@ -37,7 +39,9 @@ POE::Session->create(
                     $_[HEAP]{'received'}++;
 
                     $client->fetch(
-                        '/',
+                        path        => '/',
+                        method      => 'GET',
+                        scheme      => 'https',
                         on_response => sub {
                             my ( $headers, $body ) = @_;
 
@@ -49,7 +53,9 @@ POE::Session->create(
             );
 
             $client->fetch(
-                '/',
+                path        => '/',
+                method      => 'GET',
+                scheme      => 'https',
                 on_response => sub {
                     push @fetches, 2;
                     $_[HEAP]{'received'}++;
