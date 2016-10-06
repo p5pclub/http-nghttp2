@@ -26,8 +26,8 @@ WriteMakefile(
         resources   => {
             repository => {
                 type => 'git',
-                url  => 'git@github.com:gonzus/http-xscookies',
-                web  => 'https://github.com/gonzus/http-xscookies',
+                url  => 'git@github.com:gonzus/http-nghttp2',
+                web  => 'https://github.com/gonzus/http-nghttp2',
             },
         },
     },
