@@ -8,6 +8,10 @@
 #define CONTEXT_TYPE_CLIENT 0
 #define CONTEXT_TYPE_SERVER 1
 
+/*
+ * We pass this structure around with all the context
+ * we need in order to use the library and our Perl code.
+ */
 typedef struct {
     int type;
     nghttp2_info* info;
