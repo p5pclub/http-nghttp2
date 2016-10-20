@@ -53,10 +53,10 @@ sub _build_session {
     my $handle = new AnyEvent::Handle(
       connect  => [$self->host, $self->port],
       tls      => "connect",
-      tls_ctx  => { verify => 1, verify_peername => "https" } ,
+      tls_ctx  => { verify => 1, verify_peername => "https" },
       on_connect => sub {
         $self->on_connect->();
-      }
+      },
       on_error => sub {
         $self->on_error->();
       }
