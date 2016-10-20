@@ -1,9 +1,20 @@
 package NGHTTP2::Client;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw< Int Str >;
+use MooX::Types::MooseLike::Base qw< Int Str HashRef CodeRef >;
 use Carp ();
 use NGHTTP2::Session;
+use AnyEvent::TLS;
+use AnyEvent::Handle;
+use Scalar::Util ();
+
+use constant {
+    'CALLBACKS_LIST' => [
+        qw<on_connect on_error>,
+        qw<on_recv on_send>,
+        qw<on_header on_data_chunk_recv>,
+    ],
+};
 
 has 'host' => (
     'is'       => 'ro',
@@ -34,6 +45,12 @@ has 'on_connect' => (
     'required' => 1,
 );
 
+has 'callbacks' => (
+    'is'      => 'ro',
+    'isa'     => HashRef [CodeRef],
+    'default' => sub { return +{} },
+);
+
 has 'session' => (
     'is'      => 'ro',
     'lazy'    => 1,
@@ -45,21 +62,18 @@ has 'streams' => (
     'default' => sub { +{} },
 );
 
-use AnyEvent::TLS;
-use AnyEvent::Handle;
-
 sub _build_session {
     my $self    = shift;
 
-    my $handle = new AnyEvent::Handle(
+    my $handle = AnyEvent::Handle->new(
       connect  => [$self->host, $self->port],
       tls      => "connect",
       tls_ctx  => { verify => 1, verify_peername => "https" },
       on_connect => sub {
-        $self->on_connect->();
+        $self->run_callback('on_connect');
       },
       on_error => sub {
-        $self->on_error->();
+        $self->run_callback('on_error');
       }
     );
 
@@ -67,14 +81,40 @@ sub _build_session {
 
     $session->open_session(
         # we put in
-        recv => sub { $handle->recv(@_) },
-        send => sub { $handle->send(@_) },
+        on_recv => sub { $handle->recv(@_) },
+        on_send => sub { $handle->send(@_) },
+
         # user puts in
-        on_header => sub { $self->callbacks->{on_header}->(@_) },
-        on_data_chunk_recv => sub { $self->callbacks->{on_data}->(@_) },
+        on_header => sub { $self->run_callback( 'on_header' => @_ ); },
+        on_data_chunk_recv => sub { $self->run_callback( 'on_data' => @_ ); },
     );
 
     return $session;
+}
+
+sub BUILDARGS {
+    my $class = shift;
+    my %args;
+
+    if ( @_ % 2 == 0 ) {
+        %args = @_;
+    } elsif ( ref $_[0] eq 'HASH' ) {
+        %args = %{ $_[0] };
+    }
+
+    foreach my $cb_name ( @{ CALLBACKS_LIST() } ) {
+        if  ( my $cb = delete $args{$cb_name} ) {
+            $args{'callbacks'}{$cb_name} = $cb;
+        }
+    }
+
+    return {%args};
+}
+
+sub run_callback {
+    my ( $self, $callback, @args ) = @_;
+    Scalar::Util::weaken( my $inself = $self );
+    $self->callbacks->{$callback}->( $inself, @args );
 }
 
 sub _add_stream {
