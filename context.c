@@ -157,8 +157,6 @@ static int on_begin_headers_cb(nghttp2_session *session,
     SV* sv_length = 0;
     SV* sv_stream_id = 0;
 
-    printf("on_begin_headers_cb %p\n", context);
-
     if (!context || !context->cb.on_begin_headers) {
         return 0;
     }
@@ -204,8 +202,6 @@ static int on_header_cb(nghttp2_session* session,
     SV* sv_stream_id = 0;
     SV* sv_name = 0;
     SV* sv_value = 0;
-
-    printf("on_header_cb %p\n", context);
 
     if (!context || !context->cb.on_header) {
         return 0;
@@ -271,8 +267,6 @@ static ssize_t send_cb(nghttp2_session* session,
     /* TODO: pass flags? */
     SV* sv_data = 0;
 
-    printf("send_cb %p\n", context);
-
     if (!context || !context->cb.send) {
         return 0;
     }
@@ -312,8 +306,6 @@ static ssize_t recv_cb(nghttp2_session* session,
     /* TODO: pass flags? */
     SV* sv_data = 0;
 
-    printf("recv_cb %p\n", context);
-
     if (!context || !context->cb.recv) {
         return 0;
     }
@@ -352,8 +344,6 @@ static int on_frame_recv_cb(nghttp2_session* session,
     SV* sv_type = 0;
     SV* sv_length = 0;
     SV* sv_stream_id = 0;
-
-    printf("on_frame_recv_cb %p\n", context);
 
     if (!context || !context->cb.on_frame_recv) {
         return 0;
@@ -397,8 +387,6 @@ static int on_data_chunk_recv_cb(nghttp2_session* session,
     SV* sv_stream_id = 0;
     SV* sv_data = 0;
 
-    printf("on_data_chunk_recv_cb %p\n", context);
-
     if (!context || !context->cb.on_data_chunk_recv) {
         return 0;
     }
@@ -439,8 +427,6 @@ static int on_stream_close_cb(nghttp2_session* session,
     context_t* context = (context_t*) user_data;
     SV* sv_stream_id = 0;
     SV* sv_error_code = 0;
-
-    printf("on_stream_close_cb %p\n", context);
 
     if (!context || !context->cb.on_stream_close) {
         return 0;
