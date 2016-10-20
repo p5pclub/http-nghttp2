@@ -2,9 +2,9 @@ use 5.008009;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME           => 'NGHttp2::Session',
-    VERSION_FROM   => 'lib/NGHttp2/Session.pm',
-    ABSTRACT_FROM  => 'lib/NGHttp2/Session.pm',
+    NAME           => 'NGHTTP2::Session',
+    VERSION_FROM   => 'lib/NGHTTP2/Session.pm',
+    ABSTRACT_FROM  => 'lib/NGHTTP2/Session.pm',
     LICENSE        => 'mit',
     MIN_PERL_VERSION => 5.008009,
     PREREQ_PM      => {

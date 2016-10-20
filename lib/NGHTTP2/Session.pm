@@ -1,4 +1,4 @@
-package NGHttp2::Session;
+package NGHTTP2::Session;
 
 use strict;
 use warnings;
@@ -18,7 +18,7 @@ __END__
 
 =head1 NAME
 
-NGHttp2::Session - Perl binding for nghttp2 library
+NGHTTP2::Session - Perl binding for nghttp2 library
 
 =head1 VERSION
 

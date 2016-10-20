@@ -1,5 +1,5 @@
 Changes
-lib/NGHttp2/Session.pm
+lib/NGHTTP2/Session.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files

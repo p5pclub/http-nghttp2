@@ -6,9 +6,9 @@
 
 #include "context.h"
 
-typedef context_t* NGHttp2__Session;
+typedef context_t* NGHTTP2__Session;
 
-MODULE = NGHttp2::Session        PACKAGE = NGHttp2::Session
+MODULE = NGHTTP2::Session        PACKAGE = NGHTTP2::Session
 PROTOTYPES: DISABLE
 
 #################################################################
