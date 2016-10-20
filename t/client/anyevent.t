@@ -29,6 +29,7 @@ $client->fetch(
         $client->fetch(
             path        => '/',
             method      => 'GET',
+            scheme      => 'https',
             on_response => sub {
                 my ( $headers, $body ) = @_;
 

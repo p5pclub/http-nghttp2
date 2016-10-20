@@ -19,6 +19,13 @@ has 'scheme' => (
     'default' => sub { return 'https' },
 );
 
+has 'port' => (
+    'is'       => 'ro',
+    'isa'      => 'Num',
+    'default'  => 443,
+    'required' => 1,
+);
+
 has 'on_connect' => (
     'is'       => 'ro',
     'isa' =>
@@ -37,8 +44,24 @@ has 'streams' => (
     'default' => sub { +{} },
 );
 
+use AnyEvent::TLS;
+use AnyEvent::Handle;
+
 sub _build_session {
     my $self    = shift;
+
+    my $handle = new AnyEvent::Handle(
+      connect  => [$self->host, $self->port],
+      tls      => "connect",
+      tls_ctx  => { verify => 1, verify_peername => "https" } ,
+      on_connect => sub {
+        $self->on_connect->();
+      }
+      on_error => sub {
+        $self->on_error->();
+      }
+    );
+
     my $session = NGHTTP2::Session->new();
 
     $session->open_session( sub {
@@ -71,14 +94,14 @@ sub DEMOLISH {
 }
 
 sub fetch {
-    my ( $self, $path, %callbacks ) = @_;
+    my ( $self, %options ) = @_;
 
-    $self->request( $path, sub {
+    $self->request( $options{'path'}, sub {
         my ( $stream, $headers, $body ) = @_;
 
         $self->_add_stream($stream);
 
-        $callback{'on_response'}->( $headers, $body );
+        $options{'on_response'}->( $headers, $body );
     });
 
     return;
