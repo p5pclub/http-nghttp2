@@ -1,12 +1,13 @@
 package NGHTTP2::Client;
 
 use Moo;
+use MooX::Types::MooseLike::Base qw< Int Str >;
 use Carp ();
 use NGHTTP2::Session;
 
 has 'host' => (
     'is'       => 'ro',
-    'isa'      => sub { ! ref $_[0] and length $_[0] },
+    'isa'      => Str,
     'required' => 1,
 );
 
@@ -21,7 +22,7 @@ has 'scheme' => (
 
 has 'port' => (
     'is'       => 'ro',
-    'isa'      => 'Num',
+    'isa'      => Int,
     'default'  => 443,
     'required' => 1,
 );
