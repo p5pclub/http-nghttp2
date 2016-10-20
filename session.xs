@@ -15,10 +15,30 @@ PROTOTYPES: DISABLE
 
 context_t*
 new(char* CLASS, HV* opt = NULL)
+PREINIT:
+    SV **svp;
 CODE:
 {
     /* TODO: type is hardcoded */
-    RETVAL = context_ctor(CONTEXT_TYPE_CLIENT);
+    context_t *ctx = context_ctor(CONTEXT_TYPE_CLIENT);
+
+    svp = hv_fetchs(opt, "on_begin_headers", 0);
+    ctx->cb.on_begin_headers = svp ? *svp : 0;
+
+    svp = hv_fetchs(opt, "on_header", 0);
+    ctx->cb.on_header = svp ? *svp : 0;
+
+    svp = hv_fetchs(opt, "on_send", 0);
+    ctx->cb.send = svp ? *svp : 0;
+
+    svp = hv_fetchs(opt, "on_recv", 0);
+    ctx->cb.recv = svp ? *svp : 0;
+    
+    svp = hv_fetchs(opt, "on_data_chunk_recv", 0);
+    ctx->cb.on_data_chunk_recv = svp ? *svp : 0;
+
+    /* TODO: set callback pointers */
+    RETVAL = ctx;
 }
 OUTPUT: RETVAL
 
@@ -77,3 +97,19 @@ CODE:
     RETVAL = context_session_want_write(context);
 }
 OUTPUT: RETVAL
+
+int recv(context_t* context)
+CODE:
+{
+    RETVAL = nghttp2_session_recv(context->session);
+}
+OUTPUT:
+    RETVAL
+
+int send(context_t* context)
+CODE:
+{
+    RETVAL = nghttp2_session_send(context->session);
+}
+OUTPUT:
+    RETVAL
