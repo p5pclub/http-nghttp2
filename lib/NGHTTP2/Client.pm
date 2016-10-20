@@ -10,6 +10,15 @@ has 'host' => (
     'required' => 1,
 );
 
+has 'scheme' => (
+    'is'  => 'ro',
+    'isa' => sub {
+        !ref $_[0] && length $_[0] && $_[0] eq 'http'
+            or $_[0] eq 'https';
+    },
+    'default' => sub { return 'https' },
+);
+
 has 'on_connect' => (
     'is'       => 'ro',
     'isa' =>
