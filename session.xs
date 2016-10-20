@@ -23,19 +23,19 @@ CODE:
     context_t *ctx = context_ctor(CONTEXT_TYPE_CLIENT);
 
     svp = hv_fetchs(opt, "on_begin_headers", 0);
-    ctx->cb.on_begin_headers = svp ? *svp : 0;
+    ctx->cb.on_begin_headers = svp ? SvREFCNT_inc(*svp) : 0;
 
     svp = hv_fetchs(opt, "on_header", 0);
-    ctx->cb.on_header = svp ? *svp : 0;
+    ctx->cb.on_header = svp ? SvREFCNT_inc(*svp) : 0;
 
     svp = hv_fetchs(opt, "on_send", 0);
-    ctx->cb.send = svp ? *svp : 0;
+    ctx->cb.send = svp ? SvREFCNT_inc(*svp) : 0;
 
     svp = hv_fetchs(opt, "on_recv", 0);
-    ctx->cb.recv = svp ? *svp : 0;
+    ctx->cb.recv = svp ? SvREFCNT_inc(*svp) : 0;
     
     svp = hv_fetchs(opt, "on_data_chunk_recv", 0);
-    ctx->cb.on_data_chunk_recv = svp ? *svp : 0;
+    ctx->cb.on_data_chunk_recv = svp ? SvREFCNT_inc(*svp) : 0;
 
     /* TODO: set callback pointers */
     RETVAL = ctx;

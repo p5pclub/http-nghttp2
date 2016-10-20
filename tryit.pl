@@ -6,6 +6,7 @@ my $session = NGHTTP2::Session->new({
     on_send => sub { print "heya\n" },
     on_recv => sub { print "again\n" },
 });
+$session->open_session();
 
 $session->recv();
 $session->send();
