@@ -65,9 +65,14 @@ sub _build_session {
 
     my $session = NGHTTP2::Session->new();
 
-    $session->open_session( sub {
-        $self->on_connect->();
-    });
+    $session->open_session(
+        # we put in
+        recv => sub { $handle->recv(@_) },
+        send => sub { $handle->send(@_) },
+        # user puts in
+        on_header => sub { $self->callbacks->{on_header}->(@_) },
+        on_data_chunk_recv => sub { $self->callbacks->{on_data}->(@_) },
+    );
 
     return $session;
 }
