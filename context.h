@@ -19,10 +19,11 @@ typedef struct {
 
     struct cb {
         SV* on_begin_headers;
-        SV* on_header;
-        SV* send;
+    /**/SV* on_header;
+    /**/SV* send;
+    /**/SV* recv;
         SV* on_frame_recv;
-        SV* on_data_chunk_recv;
+    /**/SV* on_data_chunk_recv;
         SV* on_stream_close;
     } cb;
 } context_t;

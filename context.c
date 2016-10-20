@@ -22,6 +22,10 @@ static ssize_t send_cb(nghttp2_session* session,
                        const uint8_t* data, size_t length,
                        int flags,
                        void* user_data);
+static ssize_t recv_cb(nghttp2_session* session,
+                       uint8_t *data, size_t length,
+                       int flags,
+                       void *user_data);
 static int on_frame_recv_cb(nghttp2_session* session,
                             const nghttp2_frame* frame,
                             void* user_data);
@@ -43,6 +47,7 @@ context_t* context_ctor(int type)
     context->session = 0;
     context->cb.on_header = 0;
     context->cb.send = 0;
+    context->cb.recv = 0;
     printf("Created context object %p\n", context);
     return context;
 }
@@ -68,6 +73,7 @@ void context_session_open(context_t* context)
     nghttp2_session_callbacks_set_on_begin_headers_callback(callbacks, on_begin_headers_cb);
     nghttp2_session_callbacks_set_on_header_callback(callbacks, on_header_cb);
     nghttp2_session_callbacks_set_send_callback(callbacks, send_cb);
+    nghttp2_session_callbacks_set_recv_callback(callbacks, recv_cb);
     nghttp2_session_callbacks_set_on_frame_recv_callback(callbacks, on_frame_recv_cb);
     nghttp2_session_callbacks_set_on_data_chunk_recv_callback(callbacks, on_data_chunk_recv_cb);
     nghttp2_session_callbacks_set_on_stream_close_callback(callbacks, on_stream_close_cb);
@@ -287,6 +293,47 @@ static ssize_t send_cb(nghttp2_session* session,
 
     printf("calling Perl send_cb %p\n", context->cb.send);
     call_sv(context->cb.send, G_SCALAR);
+
+    /* TODO: should return the value from Perl callback */
+    SPAGAIN;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    return 0;
+}
+
+static ssize_t recv_cb(nghttp2_session* session,
+                       uint8_t* data, size_t length,
+                       int flags,
+                       void *user_data)
+{
+    context_t* context = (context_t*) user_data;
+    /* TODO: pass flags? */
+    SV* sv_data = 0;
+
+    printf("recv_cb %p\n", context);
+
+    if (!context || !context->cb.recv) {
+        return 0;
+    }
+
+    dSP;
+    ENTER;
+    SAVETMPS;
+
+    if (length > 0) {
+        sv_data = sv_2mortal(newSVpv((const char*) data, length));
+    } else {
+        sv_data = sv_2mortal(newSV(0));
+    }
+
+    PUSHMARK(SP);
+    XPUSHs(sv_data);
+    PUTBACK;
+
+    printf("calling Perl recv_cb %p\n", context->cb.recv);
+    call_sv(context->cb.recv, G_SCALAR);
 
     /* TODO: should return the value from Perl callback */
     SPAGAIN;
