@@ -1,32 +1,34 @@
 use strict;
 use warnings;
 use Test::More;
-use POE;
 use NGHTTP2::Client;
+
+eval { require POE; POE->import; 1; }
+or plan 'skip_all' => 'You need POE to run this test';
 
 my ( $connected, @fetches );
 
 POE::Session->create(
     inline_states => {
         '_start' => sub {
-            $_[HEAP]->{'client'} = NGHTTP2::Client->new(
+            $_[HEAP()]->{'client'} = NGHTTP2::Client->new(
                 host       => 'http2bin.org',
                 on_connect => sub {
                     $connected++;
                 },
             );
 
-            $_[KERNEL]->yield('fetch');
-            $_[KERNEL]->delay('check', 0.5);
+            $_[KERNEL()]->yield('fetch');
+            $_[KERNEL()]->delay('check', 0.5);
         },
 
         'check' => sub {
-            $_[HEAP]{'received'} == 3
-                or $_[KERNEL]->delay('check', 0.5);
+            $_[HEAP()]{'received'} == 3
+                or $_[KERNEL()]->delay('check', 0.5);
         },
 
         'fetch' => sub {
-            my $client = $_[HEAP]{'client'};
+            my $client = $_[HEAP()]{'client'};
 
             $client->fetch(
                 path        => '/',
@@ -36,7 +38,7 @@ POE::Session->create(
                     my ( $headers, $body ) = @_;
 
                     push @fetches, 1;
-                    $_[HEAP]{'received'}++;
+                    $_[HEAP()]{'received'}++;
 
                     $client->fetch(
                         path        => '/',
@@ -46,7 +48,7 @@ POE::Session->create(
                             my ( $headers, $body ) = @_;
 
                             push @fetches, 3;
-                            $_[HEAP]{'received'}++;
+                            $_[HEAP()]{'received'}++;
                         },
                     );
                 },
@@ -58,7 +60,7 @@ POE::Session->create(
                 scheme      => 'https',
                 on_response => sub {
                     push @fetches, 2;
-                    $_[HEAP]{'received'}++;
+                    $_[HEAP()]{'received'}++;
                 },
             );
         },
