@@ -21,6 +21,9 @@ WriteMakefile(
 #    DEFINE         => '-DGMEM_CHECK',
     INC            => '-I.',
     OBJECT         => '$(O_FILES)',
+    test => {
+        'TESTS' => 't/*.t t/client/*.t',
+    },
     META_MERGE     => {
         'meta-spec' => { version => 2 },
         resources   => {
