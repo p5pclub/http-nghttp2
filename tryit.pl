@@ -3,8 +3,8 @@ use warnings;
 use NGHTTP2::Session;
 
 my $session = NGHTTP2::Session->new({
-    on_send => sub { print "inside Perl on_send\n" },
-    on_recv => sub { print "inside Perl on_recv\n" },
+    send => sub { print "inside Perl send\n" },
+    recv => sub { print "inside Perl recv\n" },
 });
 $session->open_session();
 
