@@ -70,13 +70,9 @@ void context_session_open(context_t* context)
 
     ret = nghttp2_session_callbacks_new(&callbacks);
 
-    nghttp2_session_callbacks_set_on_begin_headers_callback(callbacks, on_begin_headers_cb);
-    nghttp2_session_callbacks_set_on_header_callback(callbacks, on_header_cb);
-    nghttp2_session_callbacks_set_send_callback(callbacks, send_cb);
-    nghttp2_session_callbacks_set_recv_callback(callbacks, recv_cb);
-    nghttp2_session_callbacks_set_on_frame_recv_callback(callbacks, on_frame_recv_cb);
-    nghttp2_session_callbacks_set_on_data_chunk_recv_callback(callbacks, on_data_chunk_recv_cb);
-    nghttp2_session_callbacks_set_on_stream_close_callback(callbacks, on_stream_close_cb);
+#define install(name) nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
+    CALLBACK_LIST(install);
+#undef install
 
     switch (context->type) {
         case CONTEXT_TYPE_CLIENT:

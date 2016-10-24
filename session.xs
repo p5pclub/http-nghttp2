@@ -8,6 +8,16 @@
 
 typedef context_t* NGHTTP2__Session;
 
+void handle_options(pTHX_ context_t* context, HV* opt) {
+#define getter(name) {\
+    SV **svp = hv_fetchs(opt, #name, 0); \
+    context->cb.name = svp ? SvREFCNT_inc(*svp) : 0; \
+}
+
+    CALLBACK_LIST(getter);
+#undef getter
+}
+
 MODULE = NGHTTP2::Session        PACKAGE = NGHTTP2::Session
 PROTOTYPES: DISABLE
 
@@ -15,29 +25,12 @@ PROTOTYPES: DISABLE
 
 context_t*
 new(char* CLASS, HV* opt = NULL)
-PREINIT:
-    SV **svp;
 CODE:
 {
     /* TODO: type is hardcoded */
     context_t *ctx = context_ctor(CONTEXT_TYPE_CLIENT);
+    handle_options(aTHX_ ctx, opt);
 
-    svp = hv_fetchs(opt, "on_begin_headers", 0);
-    ctx->cb.on_begin_headers = svp ? SvREFCNT_inc(*svp) : 0;
-
-    svp = hv_fetchs(opt, "on_header", 0);
-    ctx->cb.on_header = svp ? SvREFCNT_inc(*svp) : 0;
-
-    svp = hv_fetchs(opt, "on_send", 0);
-    ctx->cb.send = svp ? SvREFCNT_inc(*svp) : 0;
-
-    svp = hv_fetchs(opt, "on_recv", 0);
-    ctx->cb.recv = svp ? SvREFCNT_inc(*svp) : 0;
-    
-    svp = hv_fetchs(opt, "on_data_chunk_recv", 0);
-    ctx->cb.on_data_chunk_recv = svp ? SvREFCNT_inc(*svp) : 0;
-
-    /* TODO: set callback pointers */
     RETVAL = ctx;
 }
 OUTPUT: RETVAL
@@ -46,6 +39,10 @@ void
 DESTROY(context_t* context)
 CODE:
 {
+#define cleanup(name) SvREFCNT_dec(context->cb.name)
+    CALLBACK_LIST(cleanup);
+#undef cleanup
+
     context_dtor(context);
 }
 

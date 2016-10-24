@@ -9,6 +9,20 @@
 #define CONTEXT_TYPE_SERVER 1
 
 /*
+ * List of supported callbacks. visit will be a name of another macro
+ * that generates actual code using the name.
+ */
+#define CALLBACK_LIST(visit) \
+    visit(on_begin_headers); \
+    visit(on_data_chunk_recv); \
+    visit(on_frame_recv); \
+    visit(on_header); \
+    visit(on_stream_close); \
+    visit(recv); \
+    visit(send); \
+    /* end */
+
+/*
  * We pass this structure around with all the context
  * we need in order to use the library and our Perl code.
  */
@@ -18,13 +32,9 @@ typedef struct {
     nghttp2_session* session;
 
     struct cb {
-        SV* on_begin_headers;
-    /**/SV* on_header;
-    /**/SV* send;
-    /**/SV* recv;
-        SV* on_frame_recv;
-    /**/SV* on_data_chunk_recv;
-        SV* on_stream_close;
+#define field(name) SV* name;
+        CALLBACK_LIST(field);
+#undef field
     } cb;
 } context_t;
 
