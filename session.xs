@@ -39,6 +39,10 @@ void
 DESTROY(context_t* context)
 CODE:
 {
+#define cleanup(name) SvREFCNT_dec(context->cb.name)
+    CALLBACK_LIST(cleanup);
+#undef cleanup
+
     context_dtor(context);
 }
 
