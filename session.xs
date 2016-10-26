@@ -18,6 +18,20 @@ void handle_options(pTHX_ context_t* context, HV* opt) {
 #undef getter
 }
 
+static int session_dtor(SV *sv, MAGIC *mg) {
+    context_t *ctx = (context_t*) mg->mg_ptr;
+
+#define cleanup(name) SvREFCNT_dec(ctx->cb.name)
+    CALLBACK_LIST(cleanup);
+#undef cleanup
+
+    context_dtor(ctx);
+
+    return 0;
+}
+
+static MGVTBL session_magic_vtbl = { .svt_free = session_dtor };
+
 MODULE = NGHTTP2::Session        PACKAGE = NGHTTP2::Session
 PROTOTYPES: DISABLE
 
@@ -34,17 +48,6 @@ CODE:
     RETVAL = ctx;
 }
 OUTPUT: RETVAL
-
-void
-DESTROY(context_t* context)
-CODE:
-{
-#define cleanup(name) SvREFCNT_dec(context->cb.name)
-    CALLBACK_LIST(cleanup);
-#undef cleanup
-
-    context_dtor(context);
-}
 
 void
 _ping(context_t* context)

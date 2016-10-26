@@ -12,6 +12,7 @@ WriteMakefile(
     },
     TEST_REQUIRES  => {
         'Test::More'            => 0,
+        'Test::LeakTrace'       => 0,
         'Data::Dumper'          => 0,
     },
     AUTHOR         => [
