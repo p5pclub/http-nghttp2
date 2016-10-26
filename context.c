@@ -1,7 +1,4 @@
-/*
- * We explicitly do not define PERL_NO_GET_CONTEXT because we
- * are manually manipulating the stack in our callback functions.
- */
+#define PERL_NO_GET_CONTEXT
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -157,6 +154,7 @@ static int on_begin_headers_cb(nghttp2_session *session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -215,6 +213,7 @@ static int on_header_cb(nghttp2_session* session,
     }
 #endif
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -267,6 +266,7 @@ static ssize_t send_cb(nghttp2_session* session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -306,6 +306,7 @@ static ssize_t recv_cb(nghttp2_session* session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -345,6 +346,7 @@ static int on_frame_recv_cb(nghttp2_session* session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -387,6 +389,7 @@ static int on_data_chunk_recv_cb(nghttp2_session* session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
@@ -428,6 +431,7 @@ static int on_stream_close_cb(nghttp2_session* session,
         return 0;
     }
 
+    dTHX;
     dSP;
     ENTER;
     SAVETMPS;
