@@ -18,7 +18,7 @@ void handle_options(pTHX_ context_t* context, HV* opt) {
 #undef getter
 }
 
-static int session_dtor(SV *sv, MAGIC *mg) {
+static int session_dtor(pTHX_ SV *sv, MAGIC *mg) {
     context_t *ctx = (context_t*) mg->mg_ptr;
 
 #define cleanup(name) SvREFCNT_dec(ctx->cb.name)
