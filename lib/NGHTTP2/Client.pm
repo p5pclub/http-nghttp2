@@ -40,15 +40,15 @@ has 'port' => (
 
 has 'on_connect' => (
     'is'       => 'ro',
-    'isa' =>
-        sub { ref $_[0] eq 'CODE' or Carp::croak("$_[0] must be coderef"); },
+    'isa'      => CodeRef,
     'required' => 1,
 );
 
 has 'callbacks' => (
     'is'      => 'ro',
     'isa'     => HashRef [CodeRef],
-    'default' => sub { return +{} },
+    'lazy'    => 1,
+    'builder' => '_build_callbacks',
 );
 
 has 'session' => (
@@ -92,23 +92,12 @@ sub _build_session {
     return $session;
 }
 
-sub BUILDARGS {
-    my $class = shift;
-    my %args;
+sub _build_callbacks {
+    my $self = shift;
 
-    if ( @_ % 2 == 0 ) {
-        %args = @_;
-    } elsif ( ref $_[0] eq 'HASH' ) {
-        %args = %{ $_[0] };
-    }
-
-    foreach my $cb_name ( @{ CALLBACKS_LIST() } ) {
-        if  ( my $cb = delete $args{$cb_name} ) {
-            $args{'callbacks'}{$cb_name} = $cb;
-        }
-    }
-
-    return {%args};
+    return +{
+        map +( $_ => $self->$_ ), @{ CALLBACKS_LIST() },
+    };
 }
 
 sub run_callback {
