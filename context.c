@@ -6,35 +6,128 @@
 
 #include "context.h"
 
-static int on_begin_headers_cb(nghttp2_session* session,
-                               const nghttp2_frame* frame,
-                               void* user_data);
-static int on_header_cb(nghttp2_session* session,
-                        const nghttp2_frame* frame,
-                        const uint8_t* name , size_t namelen,
-                        const uint8_t* value, size_t valuelen,
-                        uint8_t flags,
-                        void* user_data);
-static ssize_t send_cb(nghttp2_session* session,
-                       const uint8_t* data, size_t length,
-                       int flags,
-                       void* user_data);
-static ssize_t recv_cb(nghttp2_session* session,
-                       uint8_t *data, size_t length,
-                       int flags,
-                       void *user_data);
-static int on_frame_recv_cb(nghttp2_session* session,
-                            const nghttp2_frame* frame,
-                            void* user_data);
-static int on_data_chunk_recv_cb(nghttp2_session* session,
-                                 uint8_t flags,
-                                 int32_t stream_id,
-                                 const uint8_t* data, size_t len,
-                                 void* user_data);
-static int on_stream_close_cb(nghttp2_session* session,
-                              int32_t stream_id,
-                              uint32_t error_code,
-                              void* user_data);
+/* Define nghttp2 callback that forwards call to Perl.
+ *
+ * DEFINE_CALLBACK(type, name, arguments, param_block, return_block)
+ *
+ * type - return type of the callback.
+ * name - name of the callback.
+ * arguments - parenthesized list of arguments of the callback.
+ * param_block - code block to marshal callback parameters to perl.
+ * return_block - code block to marshal callback results from perl to C.
+ *
+ * type and arguments are should match exactly the callback definition in nghttp2
+ * documentation. name is callback name without '_callback' suffix.
+ *
+ * return_block should assign to a special variable 'return_value', which is used as a
+ * return value of the C callback.
+ *
+ * FIXME: handle exceptions raised in perl callback.
+ * FIXME: handle case where return_count != 1 without croak.
+ */
+#define DEFINE_CALLBACK(type, name, arguments, param_block, return_block)     \
+    static type name##_cb arguments {                                         \
+        dTHX;                                                                 \
+        dSP;                                                                  \
+        context_t* context = (context_t*) user_data;                          \
+        int return_count;                                                     \
+        type return_value;                                                    \
+                                                                              \
+        if (!context || !context->cb.name) {                                  \
+            return 0;                                                         \
+        }                                                                     \
+                                                                              \
+        ENTER;                                                                \
+        SAVETMPS;                                                             \
+                                                                              \
+        PUSHMARK(SP);                                                         \
+        param_block;                                                          \
+        PUTBACK;                                                              \
+                                                                              \
+        return_count = call_sv(context->cb.name, G_SCALAR);                   \
+                                                                              \
+        SPAGAIN;                                                              \
+                                                                              \
+        if (return_count != 1) {                                              \
+            croak("sub return more than 1 value in scalar context");          \
+        }                                                                     \
+                                                                              \
+        return_block;                                                         \
+                                                                              \
+        PUTBACK;                                                              \
+        FREETMPS;                                                             \
+        LEAVE;                                                                \
+                                                                              \
+        return return_value;                                                  \
+    }
+/* end of DEFINE_CALLBACK */
+
+DEFINE_CALLBACK(int, on_begin_headers, (nghttp2_session *session, const nghttp2_frame *frame, void *user_data), {
+    mXPUSHi(frame->hd.type);
+    mXPUSHi(frame->hd.length);
+    mXPUSHi(frame->hd.stream_id);
+}, {
+        return_value = POPi;
+});
+
+DEFINE_CALLBACK(int, on_header, (
+    nghttp2_session* session,
+    const nghttp2_frame* frame,
+    const uint8_t* name, size_t namelen,
+    const uint8_t* value, size_t valuelen,
+    uint8_t flags,
+    void* user_data
+), {
+    mXPUSHi(frame->hd.type);
+    mXPUSHi(frame->hd.length);
+    mXPUSHi(frame->hd.stream_id);
+    mXPUSHp((const char*) name, namelen);
+    mXPUSHp((const char*) value, valuelen);
+    mXPUSHi(flags);
+}, {
+    return_value = POPi;
+});
+
+DEFINE_CALLBACK(ssize_t, send, (nghttp2_session* session, const uint8_t* data, size_t length, int flags, void* user_data), {
+    mXPUSHp((const char*) data, length);
+}, {
+    return_value = POPi;
+});
+
+DEFINE_CALLBACK(ssize_t, recv, (nghttp2_session* session, uint8_t* data, size_t length, int flags, void* user_data), {
+    mXPUSHp((char*) data, length);
+}, {
+    return_value = POPi;
+});
+
+DEFINE_CALLBACK(int, on_frame_recv, (nghttp2_session* session, const nghttp2_frame* frame, void* user_data), {
+    mXPUSHi(frame->hd.type);
+    mXPUSHi(frame->hd.length);
+    mXPUSHi(frame->hd.stream_id);
+}, {
+    return_value = POPi;
+});
+
+DEFINE_CALLBACK(int, on_data_chunk_recv, (
+    nghttp2_session* session,
+    uint8_t flags,
+    int32_t stream_id,
+    const uint8_t* data, size_t length,
+    void* user_data
+), {
+    mXPUSHi(stream_id);
+    mXPUSHi(flags);
+    mXPUSHp((const char*) data, length);
+}, {});
+
+DEFINE_CALLBACK(int, on_stream_close, (nghttp2_session* session, int32_t stream_id, uint32_t error_code, void* user_data), {
+    mXPUSHi(stream_id);
+    mXPUSHu(error_code);
+}, {
+    return_value = POPi;
+});
+
+#undef DEFINE_CALLBACK
 
 context_t* context_ctor(int type)
 {
@@ -138,321 +231,4 @@ int context_session_want_write(context_t* context)
 
     printf("want_write for session %p\n", context->session);
     return nghttp2_session_want_write(context->session);
-}
-
-
-static int on_begin_headers_cb(nghttp2_session *session,
-                               const nghttp2_frame *frame,
-                               void *user_data)
-{
-    context_t* context = (context_t*) user_data;
-    SV* sv_type = 0;
-    SV* sv_length = 0;
-    SV* sv_stream_id = 0;
-
-    if (!context || !context->cb.on_begin_headers) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    /* TODO: there is more info in headers, but it is a union... */
-    sv_type      = sv_2mortal(newSViv(frame->hd.type));
-    sv_length    = sv_2mortal(newSViv(frame->hd.length));
-    sv_stream_id = sv_2mortal(newSViv(frame->hd.stream_id));
-
-    PUSHMARK(SP);
-    XPUSHs(sv_type);
-    XPUSHs(sv_length);
-    XPUSHs(sv_stream_id);
-    PUTBACK;
-
-    printf("calling Perl on_begin_headers_cb %p\n", context->cb.on_begin_headers);
-    call_sv(context->cb.on_begin_headers, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static int on_header_cb(nghttp2_session* session,
-                        const nghttp2_frame* frame,
-                        const uint8_t* name , size_t namelen,
-                        const uint8_t* value, size_t valuelen,
-                        uint8_t flags,
-                        void* user_data)
-{
-    context_t* context = (context_t*) user_data;
-    /* TODO: pass flags? */
-    SV* sv_type = 0;
-    SV* sv_length = 0;
-    SV* sv_stream_id = 0;
-    SV* sv_name = 0;
-    SV* sv_value = 0;
-
-    if (!context || !context->cb.on_header) {
-        return 0;
-    }
-
-#if 0
-    /*
-     * frame->hd.stream_id should match the stream_id
-     * we got back from nghttp2_submit_request()
-     */
-    if (frame->hd.type     != NGHTTP2_HEADERS ||
-        frame->headers.cat != NGHTTP2_HCAT_RESPONSE ||
-        context->stream_id != frame->hd.stream_id) {
-        return 0;
-    }
-#endif
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    /* TODO: there is more info in headers, but it is a union... */
-    sv_type      = sv_2mortal(newSViv(frame->hd.type));
-    sv_length    = sv_2mortal(newSViv(frame->hd.length));
-    sv_stream_id = sv_2mortal(newSViv(frame->hd.stream_id));
-    if (namelen > 0) {
-        sv_name = sv_2mortal(newSVpv((const char*) name, namelen));
-    } else {
-        sv_name = sv_2mortal(newSV(0));
-    }
-    if (valuelen > 0) {
-        sv_value = sv_2mortal(newSVpv((const char*) value, valuelen));
-    } else {
-        sv_value = sv_2mortal(newSV(0));
-    }
-
-    PUSHMARK(SP);
-    XPUSHs(sv_type);
-    XPUSHs(sv_length);
-    XPUSHs(sv_stream_id);
-    XPUSHs(sv_name);
-    XPUSHs(sv_value);
-    PUTBACK;
-
-    printf("calling Perl on_header_cb %p\n", context->cb.on_header);
-    call_sv(context->cb.on_header, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static ssize_t send_cb(nghttp2_session* session,
-                       const uint8_t* data, size_t length,
-                       int flags,
-                       void* user_data)
-{
-    context_t* context = (context_t*) user_data;
-    /* TODO: pass flags? */
-    SV* sv_data = 0;
-
-    if (!context || !context->cb.send) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    if (length > 0) {
-        sv_data = sv_2mortal(newSVpv((const char*) data, length));
-    } else {
-        sv_data = sv_2mortal(newSV(0));
-    }
-
-    PUSHMARK(SP);
-    XPUSHs(sv_data);
-    PUTBACK;
-
-    printf("calling Perl send_cb %p\n", context->cb.send);
-    call_sv(context->cb.send, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static ssize_t recv_cb(nghttp2_session* session,
-                       uint8_t* data, size_t length,
-                       int flags,
-                       void *user_data)
-{
-    context_t* context = (context_t*) user_data;
-    /* TODO: pass flags? */
-    SV* sv_data = 0;
-
-    if (!context || !context->cb.recv) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    if (length > 0) {
-        sv_data = sv_2mortal(newSVpv((const char*) data, length));
-    } else {
-        sv_data = sv_2mortal(newSV(0));
-    }
-
-    PUSHMARK(SP);
-    XPUSHs(sv_data);
-    PUTBACK;
-
-    printf("calling Perl recv_cb %p\n", context->cb.recv);
-    call_sv(context->cb.recv, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static int on_frame_recv_cb(nghttp2_session* session,
-                            const nghttp2_frame* frame,
-                            void* user_data)
-{
-    context_t* context = (context_t*) user_data;
-    SV* sv_type = 0;
-    SV* sv_length = 0;
-    SV* sv_stream_id = 0;
-
-    if (!context || !context->cb.on_frame_recv) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    /* TODO: there is more info in headers, but it is a union... */
-    sv_type      = sv_2mortal(newSViv(frame->hd.type));
-    sv_length    = sv_2mortal(newSViv(frame->hd.length));
-    sv_stream_id = sv_2mortal(newSViv(frame->hd.stream_id));
-
-    PUSHMARK(SP);
-    XPUSHs(sv_type);
-    XPUSHs(sv_length);
-    XPUSHs(sv_stream_id);
-    PUTBACK;
-
-    printf("calling Perl on_frame_recv_cb %p\n", context->cb.on_frame_recv);
-    call_sv(context->cb.on_frame_recv, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static int on_data_chunk_recv_cb(nghttp2_session* session,
-                                 uint8_t flags,
-                                 int32_t stream_id,
-                                 const uint8_t* data, size_t length,
-                                 void* user_data)
-{
-    context_t* context = (context_t*) user_data;
-    /* TODO: pass flags? */
-    SV* sv_stream_id = 0;
-    SV* sv_data = 0;
-
-    if (!context || !context->cb.on_data_chunk_recv) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    sv_stream_id = sv_2mortal(newSViv(stream_id));
-    if (length > 0) {
-        sv_data = sv_2mortal(newSVpv((const char*) data, length));
-    } else {
-        sv_data = sv_2mortal(newSV(0));
-    }
-
-    PUSHMARK(SP);
-    XPUSHs(sv_stream_id);
-    XPUSHs(sv_data);
-    PUTBACK;
-
-    printf("calling Perl on_data_chunk_recv_cb %p\n", context->cb.on_data_chunk_recv);
-    call_sv(context->cb.on_data_chunk_recv, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
-}
-
-static int on_stream_close_cb(nghttp2_session* session,
-                              int32_t stream_id,
-                              uint32_t error_code,
-                              void* user_data)
-{
-    context_t* context = (context_t*) user_data;
-    SV* sv_stream_id = 0;
-    SV* sv_error_code = 0;
-
-    if (!context || !context->cb.on_stream_close) {
-        return 0;
-    }
-
-    dTHX;
-    dSP;
-    ENTER;
-    SAVETMPS;
-
-    /* TODO: there is more info in headers, but it is a union... */
-    sv_stream_id  = sv_2mortal(newSViv(stream_id));
-    sv_error_code = sv_2mortal(newSViv(error_code));
-
-    PUSHMARK(SP);
-    XPUSHs(sv_stream_id);
-    XPUSHs(sv_error_code);
-    PUTBACK;
-
-    printf("calling Perl on_stream_close_cb %p\n", context->cb.on_stream_close);
-    call_sv(context->cb.on_stream_close, G_SCALAR);
-
-    /* TODO: should return the value from Perl callback */
-    SPAGAIN;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-
-    return 0;
 }
