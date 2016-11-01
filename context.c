@@ -132,7 +132,9 @@ DEFINE_CALLBACK(int, on_data_chunk_recv, (
     mXPUSHi(stream_id);
     mXPUSHi(flags);
     mXPUSHp((const char*) data, length);
-}, {});
+}, {
+    return_value = POPi;
+});
 
 DEFINE_CALLBACK(int, on_stream_close, (nghttp2_session* session, int32_t stream_id, uint32_t error_code, void* user_data), {
     mXPUSHi(stream_id);
