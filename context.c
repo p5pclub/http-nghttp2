@@ -108,10 +108,31 @@ DEFINE_CALLBACK(ssize_t, send, (nghttp2_session* session, const uint8_t* data, s
     return_value = POPi;
 });
 
+/* Perl recv callback receives maximum read length and should: return
+ * a string of that length or shorter on success; undef on EAGAIN; die
+ * on any other error.
+ */
 DEFINE_CALLBACK(ssize_t, recv, (nghttp2_session* session, uint8_t* data, size_t length, int flags, void* user_data), {
-    mXPUSHp((char*) data, length);
+    mXPUSHi(length);
+    mXPUSHi(flags);
 }, {
-    return_value = POPi;
+    SV* got;
+    STRLEN got_len;
+    const char* got_data;
+
+    got = POPs;
+    if (SvTRUE(got)) {
+        got_data = SvPV(got, got_len);
+        if (got_len <= length) {
+            memcpy(data, got_data, got_len);
+            return_value = got_len;
+        } else {
+            warn("recv callback returned more data (%lu) than was requested (%lu)", got_len, length);
+            return_value = NGHTTP2_ERR_CALLBACK_FAILURE;
+        }
+    } else {
+        return_value = NGHTTP2_ERR_WOULDBLOCK;
+    }
 });
 
 DEFINE_CALLBACK(int, on_frame_recv, (nghttp2_session* session, const nghttp2_frame* frame, void* user_data), {
