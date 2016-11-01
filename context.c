@@ -174,7 +174,8 @@ void context_session_open(context_t* context)
 
     ret = nghttp2_session_callbacks_new(&callbacks);
 
-#define install(name) nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
+#define install(name) if (context->cb.name)                                   \
+        nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
     CALLBACK_LIST(install);
 #undef install
 
