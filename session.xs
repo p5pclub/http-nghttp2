@@ -113,3 +113,38 @@ CODE:
 }
 OUTPUT:
     RETVAL
+
+int submit_request(context_t* context, AV* headers)
+PREINIT:
+    nghttp2_nv *nva;
+    size_t nvlen;
+    int i;
+CODE:
+    nvlen = av_top_index(headers) + 1;
+    Newx(nva, nvlen, nghttp2_nv);
+    SAVEFREEPV(nva);
+    for(i = 0; i < nvlen; i++) {
+        SV** key;
+        SV** val;
+        SV** hdr;
+
+        hdr = av_fetch(headers, i, 0);
+        if (!(hdr && SvROK(*hdr) && SvTYPE(SvRV(*hdr)) == SVt_PVAV)) {
+            croak("header %d should be arrayref", i);
+        }
+
+        key = av_fetch((AV*) SvRV(*hdr), 0, 0);
+        val = av_fetch((AV*) SvRV(*hdr), 1, 0);
+
+        if (key == NULL || val == NULL) {
+            croak("header %d has undefined name or value", i);
+        }
+
+        nva[i].name = (uint8_t *) SvPV(*key, nva[i].namelen);
+        nva[i].value = (uint8_t *) SvPV(*val, nva[i].valuelen);
+        nva[i].flags = 0;
+    }
+
+    RETVAL = nghttp2_submit_request(context->session, NULL, nva, nvlen, NULL, NULL);
+OUTPUT:
+    RETVAL
