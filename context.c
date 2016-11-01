@@ -21,9 +21,6 @@
  *
  * return_block should assign to a special variable 'return_value', which is used as a
  * return value of the C callback.
- *
- * FIXME: handle exceptions raised in perl callback.
- * FIXME: handle case where return_count != 1 without croak.
  */
 #define DEFINE_CALLBACK(type, name, arguments, param_block, return_block)     \
     static type name##_cb arguments {                                         \
@@ -31,7 +28,8 @@
         dSP;                                                                  \
         context_t* context = (context_t*) user_data;                          \
         int return_count;                                                     \
-        type return_value;                                                    \
+        /* Prepare for the worst. If we forget to set return value, abort. */ \
+        type return_value = NGHTTP2_ERR_CALLBACK_FAILURE;                     \
                                                                               \
         if (!context || !context->cb.name) {                                  \
             return 0;                                                         \
@@ -44,15 +42,31 @@
         param_block;                                                          \
         PUTBACK;                                                              \
                                                                               \
-        return_count = call_sv(context->cb.name, G_SCALAR);                   \
+        return_count = call_sv(context->cb.name, G_SCALAR | G_EVAL);          \
                                                                               \
         SPAGAIN;                                                              \
                                                                               \
-        if (return_count != 1) {                                              \
-            croak("sub return more than 1 value in scalar context");          \
+        if (SvTRUE(ERRSV)) {                                                  \
+            /* We can't die, because that would jump through the nghttp2   */ \
+            /* C part of the stack, which it might not be prepared for.    */ \
+            /* For now we just log the error and abort the entire session. */ \
+            /* NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE that closes only one  */ \
+            /* active stream is also an option, but not all callback types */ \
+            /* support it.                                                 */ \
+            warn_sv(ERRSV);                                                   \
+            SP -= return_count;                                               \
+            return_value = NGHTTP2_ERR_CALLBACK_FAILURE;                      \
         }                                                                     \
-                                                                              \
-        return_block;                                                         \
+        else if (return_count != 1) {                                         \
+            /* Normally, given G_SCALAR flag above, this should never      */ \
+            /* happen. Perl docs still check for this though, so do we.    */ \
+            warn("callback returned multiple results in scalar context");     \
+            SP -= return_count;                                               \
+            return_value = NGHTTP2_ERR_CALLBACK_FAILURE;                      \
+        }                                                                     \
+        else {                                                                \
+            return_block;                                                     \
+        }                                                                     \
                                                                               \
         PUTBACK;                                                              \
         FREETMPS;                                                             \

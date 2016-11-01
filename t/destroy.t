@@ -30,4 +30,12 @@ no_leaks_ok(sub {
     my $t = bless \do {my $u = 0}, ref $s;
 }, "rogue scalar");
 
+no_leaks_ok(sub {
+    my $s = NGHTTP2::Session->new({
+        recv => sub { die "kaboom" },
+    });
+    $s->open_session();
+    $s->recv();
+}, "dying is fine");
+
 done_testing;
