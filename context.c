@@ -81,7 +81,7 @@ DEFINE_CALLBACK(int, on_begin_headers, (nghttp2_session *session, const nghttp2_
     mXPUSHi(frame->hd.length);
     mXPUSHi(frame->hd.stream_id);
 }, {
-        return_value = POPi;
+    return_value = POPi;
 });
 
 DEFINE_CALLBACK(int, on_header, (
