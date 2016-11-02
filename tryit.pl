@@ -51,7 +51,7 @@ tcp_connect("http2bin.org", 80, sub {
         on_stream_close => sub {
             my ($stream_id, $error_code) = @_;
             print "[$stream_id] Closed: $error_code\n";
-            $cv->send();
+            $cv->end();
             return 0;
         }
     });
@@ -65,6 +65,16 @@ tcp_connect("http2bin.org", 80, sub {
         $session->send();
     });
 
+    $cv->begin();
+    $session->submit_request([
+        [ ":method" => "GET" ],
+        [ ":scheme" => "http" ],
+        [ ":authority" => "http2bin.org" ],
+        [ ":path" => "/ip" ],
+        [ "user-agent" => "perl/NGHTTP2::Session/$NGHTTP2::Session::VERSION" ],
+    ]);
+
+    $cv->begin();
     $session->submit_request([
         [ ":method" => "GET" ],
         [ ":scheme" => "http" ],
