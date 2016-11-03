@@ -13,14 +13,12 @@ void handle_options(pTHX_ context_t* context, HV* opt) {
     SV **svp = hv_fetchs(opt, #name, 0); \
     context->cb.name = svp ? SvREFCNT_inc(*svp) : 0; \
 }
-
     CALLBACK_LIST(getter);
 #undef getter
 }
 
 static int session_dtor(pTHX_ SV *sv, MAGIC *mg) {
     context_t *ctx = (context_t*) mg->mg_ptr;
-
 #define cleanup(name) SvREFCNT_dec(ctx->cb.name)
     CALLBACK_LIST(cleanup);
 #undef cleanup

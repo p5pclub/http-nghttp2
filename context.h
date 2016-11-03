@@ -11,6 +11,7 @@
 /*
  * List of supported callbacks. visit will be a name of another macro
  * that generates actual code using the name.
+ * Names are chosen to match exactly the nghttp2 names
  */
 #define CALLBACK_LIST(visit) \
     visit(on_begin_headers); \

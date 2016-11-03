@@ -13,14 +13,14 @@
  * type - return type of the callback.
  * name - name of the callback.
  * arguments - parenthesized list of arguments of the callback.
- * param_block - code block to marshal callback parameters to perl.
- * return_block - code block to marshal callback results from perl to C.
+ * param_block - code block to marshall callback parameters to perl.
+ * return_block - code block to marshall callback results from perl to C.
  *
- * type and arguments are should match exactly the callback definition in nghttp2
+ * type and arguments should match exactly the callback definition in nghttp2
  * documentation. name is callback name without '_callback' suffix.
  *
- * return_block should assign to a special variable 'return_value', which is used as a
- * return value of the C callback.
+ * return_block should assign to a special variable 'return_value', which is
+ * used as the return value for the C callback.
  */
 #define DEFINE_CALLBACK(type, name, arguments, param_block, return_block)     \
     static type name##_cb arguments {                                         \
@@ -50,9 +50,9 @@
             /* We can't die, because that would jump through the nghttp2   */ \
             /* C part of the stack, which it might not be prepared for.    */ \
             /* For now we just log the error and abort the entire session. */ \
-            /* NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE that closes only one  */ \
-            /* active stream is also an option, but not all callback types */ \
-            /* support it.                                                 */ \
+            /* NGHTTP2_ERR_TEMPORAL_CALLBACK_FAILURE, which closes only    */ \
+            /* one active stream, is also an option, but not all callback  */ \
+            /* types support it.                                           */ \
             warn_sv(ERRSV);                                                   \
             SP -= return_count;                                               \
             return_value = NGHTTP2_ERR_CALLBACK_FAILURE;                      \
@@ -75,6 +75,9 @@
         return return_value;                                                  \
     }
 /* end of DEFINE_CALLBACK */
+
+
+/* Now define each of the specific callbacks we will need */
 
 DEFINE_CALLBACK(int, on_begin_headers, (nghttp2_session *session, const nghttp2_frame *frame, void *user_data), {
     mXPUSHi(frame->hd.type);
@@ -108,9 +111,11 @@ DEFINE_CALLBACK(ssize_t, send, (nghttp2_session* session, const uint8_t* data, s
     return_value = POPi;
 });
 
-/* Perl recv callback receives maximum read length and should: return
- * a string of that length or shorter on success; undef on EAGAIN; die
- * on any other error.
+/* Perl recv callback receives maximum read length and should:
+ *
+ * on success: return a string of at most that length
+ * on EAGAIN: return undef
+ * on any other error: die
  */
 DEFINE_CALLBACK(ssize_t, recv, (nghttp2_session* session, uint8_t* data, size_t length, int flags, void* user_data), {
     mXPUSHi(length);
