@@ -144,7 +144,6 @@ CODE:
 
         SAVEFREEPV(nva[i].name);
         SAVEFREEPV(nva[i].value);
-
     }
 
     RETVAL = nghttp2_submit_request(context->session, NULL, nva, nvlen, NULL, NULL);

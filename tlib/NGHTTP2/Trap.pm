@@ -11,6 +11,6 @@ use overload '""' => sub {
 sub new {
     my ($class, $code) = @_;
     return bless($code, $class);
-} 
+}
 
 1;
