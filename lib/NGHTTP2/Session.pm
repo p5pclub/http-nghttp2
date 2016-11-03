@@ -36,4 +36,8 @@ Version 0.000001
 
 =item * Sawyer X C<< xsawyerx AT cpan DOT org >>
 
+=item * Andrei Vereha C<< avereha AT cpan DOT org >>
+
+=item * Vickenty Fesunov C<< cpan-ouroboros AT setattr DOT net >>
+
 =back
