@@ -56,6 +56,7 @@ tcp_connect("http2bin.org", 80, sub {
         }
     });
 
+    $session->_ping();
     $session->open_session();
 
     $recv = AnyEvent->io(fh => $fh, poll => "r", cb => sub {

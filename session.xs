@@ -124,9 +124,9 @@ CODE:
     Newx(nva, nvlen, nghttp2_nv);
     SAVEFREEPV(nva);
     for(i = 0; i < nvlen; i++) {
+        SV** hdr;
         SV** key;
         SV** val;
-        SV** hdr;
 
         hdr = av_fetch(headers, i, 0);
         if (!(hdr && SvROK(*hdr) && SvTYPE(SvRV(*hdr)) == SVt_PVAV)) {
