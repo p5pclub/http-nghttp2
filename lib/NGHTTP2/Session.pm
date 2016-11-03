@@ -5,7 +5,7 @@ use warnings;
 
 use XSLoader;
 
-our $VERSION = '0.000001';
+our $VERSION = '0.000002';
 XSLoader::load(__PACKAGE__, $VERSION);
 
 1;
@@ -22,7 +22,7 @@ NGHTTP2::Session - Perl binding for nghttp2 library
 
 =head1 VERSION
 
-Version 0.000001
+Version 0.000002
 
 =head1 SYNOPSIS
 
