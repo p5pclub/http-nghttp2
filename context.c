@@ -169,12 +169,9 @@ DEFINE_CALLBACK(int, on_stream_close, (nghttp2_session* session, int32_t stream_
 context_t* context_ctor(int type)
 {
     context_t* context = (context_t*) malloc(sizeof(context_t));
+    memset(context, 0, sizeof(context_t));
     context->type = type;
     context->info = nghttp2_version(0);
-    context->session = 0;
-    context->cb.on_header = 0;
-    context->cb.send = 0;
-    context->cb.recv = 0;
     printf("Created context object %p\n", context);
     return context;
 }
