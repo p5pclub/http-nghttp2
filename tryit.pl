@@ -86,3 +86,5 @@ tcp_connect("http2bin.org", 80, sub {
 });
 
 $cv->recv();
+$session->close_session();
+$session->_ping();
