@@ -138,9 +138,13 @@ CODE:
             croak("header %d has undefined name or value", i);
         }
 
-        nva[i].name = (uint8_t *) SvPV(*key, nva[i].namelen);
-        nva[i].value = (uint8_t *) SvPV(*val, nva[i].valuelen);
+        nva[i].name = (uint8_t *) savepv(SvPV(*key, nva[i].namelen));
+        nva[i].value = (uint8_t *) savepv(SvPV(*val, nva[i].valuelen));
         nva[i].flags = 0;
+
+        SAVEFREEPV(nva[i].name);
+        SAVEFREEPV(nva[i].value);
+
     }
 
     RETVAL = nghttp2_submit_request(context->session, NULL, nva, nvlen, NULL, NULL);
