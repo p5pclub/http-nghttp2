@@ -38,6 +38,6 @@ Version 0.000002
 
 =item * Andrei Vereha C<< avereha AT cpan DOT org >>
 
-=item * Vickenty Fesunov C<< cpan-ouroboros AT setattr DOT net >>
+=item * Vickenty Fesunov C<< kent AT setattr DOT net >>
 
 =back
