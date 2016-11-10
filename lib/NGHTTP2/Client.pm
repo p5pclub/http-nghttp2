@@ -1,20 +1,17 @@
 package NGHTTP2::Client;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw< Int Str HashRef CodeRef >;
+use MooX::Types::MooseLike::Base qw< Str Int CodeRef Object >;
+
 use Carp ();
-use NGHTTP2::Session;
-use AnyEvent::TLS;
-use AnyEvent::Handle;
+use Safe::Isa;
 use Scalar::Util ();
 
-use constant {
-    'CALLBACKS_LIST' => [
-        qw<on_connect on_error>,
-        qw<on_recv on_send>,
-        qw<on_header on_data_chunk_recv>,
-    ],
-};
+use AnyEvent;
+use AnyEvent::Socket;
+use AnyEvent::Handle;
+use NGHTTP2::Session;
+use NGHTTP2::Request;
 
 has 'host' => (
     'is'       => 'ro',
@@ -22,124 +19,157 @@ has 'host' => (
     'required' => 1,
 );
 
-has 'scheme' => (
-    'is'  => 'ro',
-    'isa' => sub {
-        !ref $_[0] && length $_[0] && $_[0] eq 'http'
-            or $_[0] eq 'https';
-    },
-    'default' => sub { return 'https' },
-);
-
 has 'port' => (
     'is'       => 'ro',
     'isa'      => Int,
-    'default'  => 443,
     'required' => 1,
 );
 
-has 'on_connect' => (
+has 'send_watcher' => (
+    'is'     => 'ro',
+    'isa'    => Object,
+    'writer' => 'set_send_watcher',
+);
+
+has 'recv_watcher' => (
+    'is'     => 'ro',
+    'isa'    => Object,
+    'writer' => 'set_recv_watcher',
+);
+
+has 'connection' => (
+    'is'      => 'ro',
+    'isa'     => Object,
+    'lazy'    => 1,
+    'builder' => '_build_connection',
+);
+
+has 'session' => (
+    'is'     => 'ro',
+    'isa'    => Object,
+    'writer' => 'set_session',
+);
+
+has [qw<on_connect on_header on_stream_close on_data_chunk_recv>] => (
     'is'       => 'ro',
     'isa'      => CodeRef,
     'required' => 1,
 );
 
-has 'callbacks' => (
-    'is'      => 'ro',
-    'isa'     => HashRef [CodeRef],
-    'lazy'    => 1,
-    'builder' => '_build_callbacks',
-);
-
-has 'session' => (
-    'is'      => 'ro',
-    'lazy'    => 1,
-    'builder' => '_build_session',
-);
-
-has 'streams' => (
-    'is'      => 'ro',
-    'default' => sub { +{} },
-);
-
-sub _build_session {
-    my $self    = shift;
-
-    my $handle = AnyEvent::Handle->new(
-      connect  => [$self->host, $self->port],
-      tls      => "connect",
-      tls_ctx  => { verify => 1, verify_peername => "https" },
-      on_connect => sub {
-        $self->run_callback('on_connect');
-      },
-      on_error => sub {
-        $self->run_callback('on_error');
-      }
-    );
-
-    my $session = NGHTTP2::Session->new();
-
-    $session->open_session(
-        # we put in
-        on_recv => sub { $handle->recv(@_) },
-        on_send => sub { $handle->send(@_) },
-
-        # user puts in
-        on_header => sub { $self->run_callback( 'on_header' => @_ ); },
-        on_data_chunk_recv => sub { $self->run_callback( 'on_data' => @_ ); },
-    );
-
-    return $session;
-}
-
-sub _build_callbacks {
+sub BUILD {
     my $self = shift;
 
-    return +{
-        map +( $_ => $self->$_ ), @{ CALLBACKS_LIST() },
-    };
+    # assert connection on initialize
+    $self->connection;
 }
 
-sub run_callback {
-    my ( $self, $callback, @args ) = @_;
+sub _build_connection {
+    my $self = shift;
+
     Scalar::Util::weaken( my $inself = $self );
-    $self->callbacks->{$callback}->( $inself, @args );
+    my $guard = tcp_connect( $self->host, $self->port, sub {
+        my $fh = shift or Carp::croak('failed to connect');
+
+        my $session;
+        $session = NGHTTP2::Session->new({
+            send => sub {
+                my ($data, $flags) = @_;
+                #printf("# send=%s\n", unpack("h*", $data));
+                return $fh->syswrite($data);
+            },
+
+            recv => sub {
+                my ($length, $flags) = @_;
+
+                # debugging
+                #print "# recv=$length: ";
+
+                my $data;
+                if ( ! defined $fh->sysread( $data, $length ) ) {
+                    # debugging
+                    #print "$!\n";
+
+                    # We're done
+                    $!{'EAGAIN'}
+                        and return;
+
+                    die "Unknown error: $!\n";
+                }
+
+                # debugging
+                #printf( "%s\n", unpack( "h*", $data ) );
+
+                return $data;
+            },
+
+            on_header => sub {
+                my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
+                return $inself->on_header->(
+                    $session, $frame_type, $stream_id, $name, $value,
+                );
+            },
+
+            on_data_chunk_recv => sub {
+                my ($stream_id, $flags, $data) = @_;
+
+                return $inself->on_data_chunk_recv->(
+                    $session, $stream_id, $flags, $data,
+                );
+            },
+
+            on_stream_close => sub {
+                my ($stream_id, $error_code ) = @_;
+                return $inself->on_stream_close->(
+                    $session, $stream_id, $error_code
+                );
+            },
+        });
+
+        $session->open_session();
+
+        $inself->set_recv_watcher(
+            AnyEvent->io(
+                fh   => $fh,
+                poll => "r",
+                cb   => sub {
+                    $session->recv();
+                }
+            )
+        );
+
+        $inself->set_send_watcher(
+            AnyEvent->io(
+                fh   => $fh,
+                poll => "w",
+                cb   => sub {
+                    $session->send();
+                }
+            )
+        );
+
+        $inself->set_session($session);
+
+        $inself->on_connect->($session);
+    } );
+
+    return $guard;
 }
 
-sub _add_stream {
-    my ( $self, $stream_id ) = @_;
-    return $self->{'streams'}{$stream_id} = 1;
-}
+sub request {
+    my $self = shift;
+    my $request;
 
-## XXX: Not used yet
-## no critic qw(Subroutines::ProhibitUnusedPrivateSubroutines)
-sub _remove_stream {
-    my ( $self, $stream_id ) = @_;
-    return delete $self->{'streams'}{$stream_id};
-}
-
-sub DEMOLISH {
-    my $self    = shift;
-    my $session = $self->session;
-
-    $session->close_session();
-    $session->terminate_session();
-
-    return;
-}
-
-sub fetch {
-    my ( $self, %options ) = @_;
-
-    $self->request( $options{'path'}, sub {
-        my ( $stream, $headers, $body ) = @_;
-
-        $self->_add_stream($stream);
-
-        $options{'on_response'}->( $headers, $body );
-    });
-
-    return;
+    if ( @_ == 1 ) {
+        if ( $_[0]->$_isa('NGHTTP2::Request') ) {
+            $request = $_[0];
+        } else {
+            Carp::croak('Bad argument to request()');
+        }
+    } elsif ( @_ % 2 == 0 ) {
+        $request = NGHTTP2::Request->new(@_);
+    } else {
+        Carp::croak('Bad arguments to request()');
+    }
 }
 
 1;
