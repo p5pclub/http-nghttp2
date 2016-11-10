@@ -226,6 +226,11 @@ void context_session_open(context_t* context)
 
     printf("Opened session %p - %d (%s)\n",
            context->session, ret, nghttp2_strerror(ret));
+
+    nghttp2_submit_settings( context->session, NGHTTP2_FLAG_NONE, NULL, 0 );
+
+    printf("Submitted settings %p (%s)\n",
+           context->session, nghttp2_strerror(ret));
 }
 
 void context_session_close(context_t* context)
