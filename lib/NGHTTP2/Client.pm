@@ -1,7 +1,7 @@
 package NGHTTP2::Client;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw< Str Int CodeRef Object >;
+use MooX::Types::MooseLike::Base qw< Str Int HashRef CodeRef Object >;
 
 use Carp ();
 use Safe::Isa;
@@ -50,11 +50,34 @@ has 'session' => (
     'writer' => 'set_session',
 );
 
+# For the protocol
 has [qw<on_connect on_header on_stream_close on_data_chunk_recv>] => (
     'is'       => 'ro',
     'isa'      => CodeRef,
     'required' => 1,
 );
+
+# Not part of the protocol
+has [qw<on_done>] => (
+    'is'        => 'ro',
+    'isa'       => CodeRef,
+    'predicate' => 'has_on_done',
+);
+
+has 'stream_responses' => (
+    'is'      => 'ro',
+    'isa'     => HashRef [Int],
+    'default' => sub { +{} },
+);
+
+sub get_stream_response {
+    my ( $self, $stream_id ) = @_;
+
+    exists $self->stream_responses->{$stream_id}
+        or Carp::croak("Stream ID $stream_id does not exist...");
+
+    return delete $self->stream_responses->{$stream_id};
+}
 
 sub BUILD {
     my $self = shift;
@@ -65,6 +88,9 @@ sub BUILD {
 
 sub _build_connection {
     my $self = shift;
+
+    my $has_on_done      = $self->has_on_done;
+    my $stream_responses = $self->stream_responses;
 
     Scalar::Util::weaken( my $inself = $self );
     my $guard = tcp_connect( $self->host, $self->port, sub {
@@ -102,6 +128,11 @@ sub _build_connection {
                 return $data;
             },
 
+            on_frame_recv => sub {
+                # FIXME: Does this even run???
+                return 0;
+            },
+
             on_header => sub {
                 my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
                 return $inself->on_header->(
@@ -112,6 +143,9 @@ sub _build_connection {
             on_data_chunk_recv => sub {
                 my ($stream_id, $flags, $data) = @_;
 
+                $has_on_done
+                    and $stream_responses->{$stream_id} .= $data;
+
                 return $inself->on_data_chunk_recv->(
                     $session, $stream_id, $flags, $data,
                 );
@@ -119,6 +153,12 @@ sub _build_connection {
 
             on_stream_close => sub {
                 my ($stream_id, $error_code ) = @_;
+
+                if ($has_on_done) {
+                    my $data = $self->get_stream_response($stream_id);
+                    $self->on_done->( $stream_id, $data );
+                }
+
                 return $inself->on_stream_close->(
                     $session, $stream_id, $error_code
                 );

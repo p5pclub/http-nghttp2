@@ -9,33 +9,51 @@ local $| = 1;
 my $cv = AE::cv;
 
 my $client = NGHTTP2::Client->new(
-    host               => "10.156.56.71",
-    port               => 8080,
-    ":method"          => "GET",
+    host      => 'http2bin.org',
+    port      => 80,
+    ':method' => 'GET',
+
+    on_frame_recv => sub {
+        # XXX This doesn't run
+    },
+
     on_data_chunk_recv => sub {
-        shift;
-        print "Chunk recv: ", join( ', ', @_ ) . "\n";
         return 0;
     },
+
     on_header => sub {
-        shift;
-        print "Header: ", join( ', ', @_ ) . "\n";
         return 0;
     },
+
     on_stream_close => sub {
-        shift;
-        print "Stream close: ", join( ', ', @_ ) . "\n";
-        $cv->send;
+        $cv->end;
         return 0;
     },
+
+    on_done => sub {
+        my ( $stream_id, $all_data ) = @_;
+        print "-> $stream_id:\n"
+            . "\t$all_data\n"
+            . "<- $stream_id\n";
+    },
+
     on_connect => sub {
-        print "CONNECTED, SEND REQUEST\n";
+        $cv->begin for 1 .. 2;
         $_[0]->submit_request(
             NGHTTP2::Request->new(
                 method    => "GET",
                 scheme    => "http",
-                authority => "Andrei",
-                path      => "/test",
+                authority => "http2bin.org",
+                path      => "/ip",
+            )->finalize,
+        );
+
+        $_[0]->submit_request(
+            NGHTTP2::Request->new(
+                method    => "GET",
+                scheme    => "http",
+                authority => "http2bin.org",
+                path      => "/headers",
             )->finalize,
         );
 
