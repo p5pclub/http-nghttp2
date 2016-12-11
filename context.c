@@ -177,13 +177,11 @@ context_t* context_ctor(int type)
     memset(context, 0, sizeof(context_t));
     context->type = type;
     context->info = nghttp2_version(0);
-    printf("Created context object %p\n", context);
     return context;
 }
 
 void context_dtor(context_t* context)
 {
-    printf("Destroying context object %p\n", context);
     free(context);
 }
 
@@ -224,13 +222,18 @@ void context_session_open(context_t* context)
 
     nghttp2_session_callbacks_del(callbacks);
 
+    /*
     printf("Opened session %p - %d (%s)\n",
            context->session, ret, nghttp2_strerror(ret));
+    */
 
     nghttp2_submit_settings( context->session, NGHTTP2_FLAG_NONE, NULL, 0 );
 
+    /*
     printf("Submitted settings %p (%s)\n",
            context->session, nghttp2_strerror(ret));
+    */
+    (void)ret;
 }
 
 void context_session_close(context_t* context)
@@ -240,7 +243,7 @@ void context_session_close(context_t* context)
         return;
     }
 
-    printf("Closing session %p\n", context->session);
+    /*printf("Closing session %p\n", context->session);*/
     nghttp2_session_del(context->session);
     context->session = 0;
 }
@@ -252,7 +255,7 @@ void context_session_terminate(context_t* context, int reason)
         return;
     }
 
-    printf("Terminating session %p, reason %d\n", context->session, reason);
+    /*printf("Terminating session %p, reason %d\n", context->session, reason);*/
     nghttp2_session_terminate_session(context->session, reason);
 }
 
@@ -263,7 +266,7 @@ int context_session_want_read(context_t* context)
         return 0;
     }
 
-    printf("want_read for session %p\n", context->session);
+    /*printf("want_read for session %p\n", context->session);*/
     return nghttp2_session_want_read(context->session);
 }
 
@@ -274,6 +277,6 @@ int context_session_want_write(context_t* context)
         return 0;
     }
 
-    printf("want_write for session %p\n", context->session);
+    /*printf("want_write for session %p\n", context->session);*/
     return nghttp2_session_want_write(context->session);
 }
