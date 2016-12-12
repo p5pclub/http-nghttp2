@@ -94,17 +94,17 @@ sub _build_connection {
 
     Scalar::Util::weaken( my $inself = $self );
     my $guard = tcp_connect( $self->host, $self->port, sub {
-        my $fh = shift or Carp::croak('failed to connect');
+        my $fh = shift or Carp::croak('Failed to connect');
 
         my $session;
         $session = NGHTTP2::Session->new({
-            send => sub {
+            'send' => sub {
                 my ($data, $flags) = @_;
                 #printf("# send=%s\n", unpack("h*", $data));
                 return $fh->syswrite($data);
             },
 
-            recv => sub {
+            'recv' => sub {
                 my ($length, $flags) = @_;
 
                 # debugging
@@ -128,19 +128,19 @@ sub _build_connection {
                 return $data;
             },
 
-            on_frame_recv => sub {
+            'on_frame_recv' => sub {
                 # FIXME: Does this even run???
                 return 0;
             },
 
-            on_header => sub {
+            'on_header' => sub {
                 my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
                 return $inself->on_header->(
                     $session, $frame_type, $stream_id, $name, $value,
                 );
             },
 
-            on_data_chunk_recv => sub {
+            'on_data_chunk_recv' => sub {
                 my ($stream_id, $flags, $data) = @_;
 
                 $has_on_done
@@ -151,7 +151,7 @@ sub _build_connection {
                 );
             },
 
-            on_stream_close => sub {
+            'on_stream_close' => sub {
                 my ($stream_id, $error_code ) = @_;
 
                 if ($has_on_done) {
@@ -169,21 +169,17 @@ sub _build_connection {
 
         $inself->set_recv_watcher(
             AnyEvent->io(
-                fh   => $fh,
-                poll => "r",
-                cb   => sub {
-                    $session->recv();
-                }
+                'fh'   => $fh,
+                'poll' => 'r',
+                'cb'   => sub { $session->recv(); },
             )
         );
 
         $inself->set_send_watcher(
             AnyEvent->io(
-                fh   => $fh,
-                poll => "w",
-                cb   => sub {
-                    $session->send();
-                }
+                'fh'   => $fh,
+                'poll' => 'w',
+                'cb'   => sub { $session->send(); },
             )
         );
 
