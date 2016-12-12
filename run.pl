@@ -11,7 +11,6 @@ my $cv = AE::cv;
 my $client = NGHTTP2::Client->new(
     host      => 'http2bin.org',
     port      => 80,
-    ':method' => 'GET',
 
     on_frame_recv => sub {
         # XXX This doesn't run
