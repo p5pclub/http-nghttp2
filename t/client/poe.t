@@ -1,76 +1,93 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More 'tests' => 5;
 use NGHTTP2::Client;
+use Scalar::Util ();
 
 eval { require POE; POE->import; 1; }
 or plan 'skip_all' => 'You need POE to run this test';
 
-my ( $connected, @fetches );
-
+my ( $data_chunk, $header );
 POE::Session->create(
-    inline_states => {
+    'inline_states' => {
         '_start' => sub {
-            $_[HEAP()]->{'client'} = NGHTTP2::Client->new(
-                host       => 'http2bin.org',
-                on_connect => sub {
-                    $connected++;
+            # not sure this needs to be weakened, but might as well
+            Scalar::Util::weaken( my $heap = $_[ POE::Session::HEAP() ] );
+
+            $heap->{'client'} = NGHTTP2::Client->new(
+                'host'       => 'http2bin.org',
+                'port'       => 80,
+                'on_connect' => sub {
+                    ok( 1, 'on_connect was called' );
+                    my $session = shift;
+
+                    $session->submit_request(
+                        NGHTTP2::Request->new(
+                            'method'    => 'GET',
+                            'scheme'    => 'http',
+                            'authority' => 'http2bin.org',
+                            'path'      => '/ip',
+                        )->finalize
+                    );
+
+                    return 0;
+                },
+
+                'on_header' => sub {
+                    $header++
+                        and return 0;
+
+                    ok( 1, 'on_header called at least once' );
+
+                    return 0;
+                },
+
+                'on_frame_recv' => sub {
+                    TODO: {
+                        local $TODO = 'on_frame_recv is not called';
+                        ok( 1, 'on_frame_recv called' );
+                    }
+
+                    return 0;
+                },
+
+                'on_data_chunk_recv' => sub {
+                    $data_chunk++
+                        and return 0;
+
+                    ok( 1, 'on_data_chunk_recv caclled at least once' );
+
+                    return 0;
+                },
+
+                'on_stream_close' => sub {
+                    ok( 1, 'Stream was closed' );
+
+                    $heap->{'done'}++;
+
+                    return 0;
+                },
+
+                'on_done' => sub {
+                    ok( 1, 'on_done called' );
+
+                    return 0;
                 },
             );
 
-            $_[KERNEL()]->yield('fetch');
-            $_[KERNEL()]->delay('check', 0.5);
+            #$_[ POE::Session::KERNEL() ]->yield('check');
+            $_[ POE::Session::KERNEL() ]->delay('check' => 0.1 );
         },
 
         'check' => sub {
-            $_[HEAP()]{'received'} == 3
-                or $_[KERNEL()]->delay('check', 0.5);
-        },
+            $_[ POE::Session::HEAP() ]->{'done'}
+                or return $_[ POE::Session::KERNEL() ]->delay( 'check' => 0.1 );
 
-        'fetch' => sub {
-            my $client = $_[HEAP()]{'client'};
-
-            $client->fetch(
-                path        => '/',
-                method      => 'GET',
-                scheme      => 'https',
-                on_response => sub {
-                    my ( $headers, $body ) = @_;
-
-                    push @fetches, 1;
-                    $_[HEAP()]{'received'}++;
-
-                    $client->fetch(
-                        path        => '/',
-                        method      => 'GET',
-                        scheme      => 'https',
-                        on_response => sub {
-                            my ( $headers, $body ) = @_;
-
-                            push @fetches, 3;
-                            $_[HEAP()]{'received'}++;
-                        },
-                    );
-                },
-            );
-
-            $client->fetch(
-                path        => '/',
-                method      => 'GET',
-                scheme      => 'https',
-                on_response => sub {
-                    push @fetches, 2;
-                    $_[HEAP()]{'received'}++;
-                },
-            );
+            # FIXME: this doesn't actually close it...
+            # Not sure what holds onto it. :/
+            $_[ POE::Session::KERNEL() ]->stop();
         },
     },
 );
 
 POE::Kernel->run;
-
-is( $connected, 1, 'Connected once' );
-is( $#fetches, 2, 'Received 3 responses' );
-isnt( $fetches[0], 3, 'Third request is definitely not the first' );
-
-done_testing();
