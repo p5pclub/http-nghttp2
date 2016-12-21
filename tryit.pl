@@ -66,23 +66,31 @@ tcp_connect("http2bin.org", 80, sub {
         $session->send();
     });
 
-    $cv->begin();
-    $session->submit_request([
-        [ ":method" => "GET" ],
-        [ ":scheme" => "http" ],
-        [ ":authority" => "http2bin.org" ],
-        [ ":path" => "/ip" ],
-        [ "user-agent" => "perl/NGHTTP2::Session/$NGHTTP2::Session::VERSION" ],
-    ]);
+    my $stream_id;
+    my $path;
+    my $user_agent = "perl/NGHTTP2::Session/$NGHTTP2::Session::VERSION";
 
     $cv->begin();
-    $session->submit_request([
+    $path = "/ip";
+    $stream_id = $session->submit_request([
         [ ":method" => "GET" ],
         [ ":scheme" => "http" ],
         [ ":authority" => "http2bin.org" ],
-        [ ":path" => "/stream/5" ],
-        [ "user-agent" => "perl/NGHTTP2::Session/$NGHTTP2::Session::VERSION" ],
+        [ ":path" => $path ],
+        [ "user-agent" => $user_agent ],
     ]);
+    printf("Submitted request for [%s] => %d\n", $path, $stream_id);
+
+    $cv->begin();
+    $path = "/stream/5";
+    $stream_id = $session->submit_request([
+        [ ":method" => "GET" ],
+        [ ":scheme" => "http" ],
+        [ ":authority" => "http2bin.org" ],
+        [ ":path" => $path ],
+        [ "user-agent" => $user_agent ],
+    ]);
+    printf("Submitted request for [%s] => %d\n", $path, $stream_id);
 });
 
 $cv->recv();
