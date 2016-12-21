@@ -8,7 +8,7 @@
 
 typedef context_t* NGHTTP2__Session;
 
-void handle_options(pTHX_ context_t* context, HV* opt) {
+static void handle_options(pTHX_ context_t* context, HV* opt) {
 #define getter(name) {\
     SV **svp = hv_fetchs(opt, #name, 0); \
     context->cb.name = svp ? SvREFCNT_inc(*svp) : 0; \
