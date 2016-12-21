@@ -96,7 +96,8 @@ CODE:
 }
 OUTPUT: RETVAL
 
-int recv(context_t* context)
+int
+recv(context_t* context)
 CODE:
 {
     int err = nghttp2_session_recv(context->session);
@@ -109,7 +110,8 @@ CODE:
 OUTPUT:
     RETVAL
 
-int send(context_t* context)
+int
+send(context_t* context)
 CODE:
 {
     int err = nghttp2_session_send(context->session);
@@ -122,7 +124,8 @@ CODE:
 OUTPUT:
     RETVAL
 
-int submit_request(context_t* context, AV* headers)
+int
+submit_request(context_t* context, AV* headers)
 PREINIT:
     nghttp2_nv *nva;
     size_t nvlen;
