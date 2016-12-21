@@ -190,50 +190,62 @@ void context_session_open(context_t* context)
     int ret = 0;
     nghttp2_session_callbacks* callbacks = 0;
 
-    if (context->session) {
-        printf("Can't open session, one already exists\n");
-        return;
-    }
+    do {
+        if (context->session) {
+            printf("Can't open session, one already exists\n");
+            break;
+        }
 
-    ret = nghttp2_session_callbacks_new(&callbacks);
+        ret = nghttp2_session_callbacks_new(&callbacks);
+        if (ret < 0) {
+            warn("Error calling nghttp2_session_callbacks_new: %s",
+                 nghttp2_strerror(ret));
+            callbacks = 0;
+            break;
+        }
 
 #define install(name) if (context->cb.name)                                   \
-        nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
-    CALLBACK_LIST(install);
+            nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
+        CALLBACK_LIST(install);
 #undef install
 
-    switch (context->type) {
-        case CONTEXT_TYPE_CLIENT:
-            ret = nghttp2_session_client_new(&context->session,
-                                             callbacks,
-                                             context);
-            break;
+        switch (context->type) {
+            case CONTEXT_TYPE_CLIENT:
+                ret = nghttp2_session_client_new(&context->session,
+                                                 callbacks,
+                                                 context);
+                break;
 
-        case CONTEXT_TYPE_SERVER:
-            ret = nghttp2_session_server_new(&context->session,
-                                             callbacks,
-                                             context);
-            break;
+            case CONTEXT_TYPE_SERVER:
+                ret = nghttp2_session_server_new(&context->session,
+                                                 callbacks,
+                                                 context);
+                break;
 
-        default:
-            printf("Invalid session type %d\n", context->type);
+            default:
+                printf("Invalid session type %d\n", context->type);
+                ret = 0;
+                break;
+        }
+        if (ret < 0) {
+            warn("Error calling nghttp2_session_(client|server)_new: %s",
+                 nghttp2_strerror(ret));
             break;
+        }
+
+        ret = nghttp2_submit_settings( context->session, NGHTTP2_FLAG_NONE, NULL, 0 );
+        if (ret < 0) {
+            warn("Error calling nghttp2_submit_settings: %s",
+                 nghttp2_strerror(ret));
+            break;
+        }
+    } while (0);
+
+    if (callbacks) {
+        /* No return value, cannot fail */
+        nghttp2_session_callbacks_del(callbacks);
+        callbacks = 0;
     }
-
-    nghttp2_session_callbacks_del(callbacks);
-
-    /*
-    printf("Opened session %p - %d (%s)\n",
-           context->session, ret, nghttp2_strerror(ret));
-    */
-
-    nghttp2_submit_settings( context->session, NGHTTP2_FLAG_NONE, NULL, 0 );
-
-    /*
-    printf("Submitted settings %p (%s)\n",
-           context->session, nghttp2_strerror(ret));
-    */
-    (void)ret;
 }
 
 void context_session_close(context_t* context)
@@ -243,20 +255,26 @@ void context_session_close(context_t* context)
         return;
     }
 
-    /*printf("Closing session %p\n", context->session);*/
+    /* No return value, cannot fail */
     nghttp2_session_del(context->session);
+
     context->session = 0;
 }
 
 void context_session_terminate(context_t* context, int reason)
 {
+    int ret = 0;
+
     if (!context->session) {
         printf("Can't terminate session, none exists\n");
         return;
     }
 
-    /*printf("Terminating session %p, reason %d\n", context->session, reason);*/
-    nghttp2_session_terminate_session(context->session, reason);
+    ret = nghttp2_session_terminate_session(context->session, reason);
+    if (ret < 0) {
+        warn("Error calling nghttp2_session_terminate_session: %s",
+             nghttp2_strerror(ret));
+    }
 }
 
 int context_session_want_read(context_t* context)
@@ -266,7 +284,7 @@ int context_session_want_read(context_t* context)
         return 0;
     }
 
-    /*printf("want_read for session %p\n", context->session);*/
+    /* Return value is always boolean, cannot fail */
     return nghttp2_session_want_read(context->session);
 }
 
@@ -277,6 +295,6 @@ int context_session_want_write(context_t* context)
         return 0;
     }
 
-    /*printf("want_write for session %p\n", context->session);*/
+    /* Return value is always boolean, cannot fail */
     return nghttp2_session_want_write(context->session);
 }

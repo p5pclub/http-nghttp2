@@ -99,7 +99,12 @@ OUTPUT: RETVAL
 int recv(context_t* context)
 CODE:
 {
-    RETVAL = nghttp2_session_recv(context->session);
+    int err = nghttp2_session_recv(context->session);
+    if (err < 0) {
+        warn("Error calling nghttp2_session_recv: %s",
+             nghttp2_strerror(err));
+    }
+    RETVAL = err;
 }
 OUTPUT:
     RETVAL
@@ -107,7 +112,12 @@ OUTPUT:
 int send(context_t* context)
 CODE:
 {
-    RETVAL = nghttp2_session_send(context->session);
+    int err = nghttp2_session_send(context->session);
+    if (err < 0) {
+        warn("Error calling nghttp2_session_send: %s",
+             nghttp2_strerror(err));
+    }
+    RETVAL = err;
 }
 OUTPUT:
     RETVAL
@@ -117,6 +127,7 @@ PREINIT:
     nghttp2_nv *nva;
     size_t nvlen;
     int i;
+    int stream_id;
 CODE:
     nvlen = av_top_index(headers) + 1;
     Newx(nva, nvlen, nghttp2_nv);
@@ -146,6 +157,11 @@ CODE:
         SAVEFREEPV(nva[i].value);
     }
 
-    RETVAL = nghttp2_submit_request(context->session, NULL, nva, nvlen, NULL, NULL);
+    stream_id = nghttp2_submit_request(context->session, NULL, nva, nvlen, NULL, NULL);
+    if (stream_id < 0) {
+        warn("Error calling nghttp2_submit_request: %s",
+             nghttp2_strerror(stream_id));
+    }
+    RETVAL = stream_id;
 OUTPUT:
     RETVAL
