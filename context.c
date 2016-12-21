@@ -174,6 +174,9 @@ DEFINE_CALLBACK(int, on_stream_close, (nghttp2_session* session, int32_t stream_
 context_t* context_ctor(int type)
 {
     context_t* context = (context_t*) malloc(sizeof(context_t));
+    if (!context) {
+        croak("Can't allocate memory for context");
+    }
     memset(context, 0, sizeof(context_t));
     context->type = type;
     context->info = nghttp2_version(0);
@@ -192,7 +195,7 @@ void context_session_open(context_t* context)
 
     do {
         if (context->session) {
-            printf("Can't open session, one already exists\n");
+            warn("Can't open session, one already exists");
             break;
         }
 
@@ -223,7 +226,7 @@ void context_session_open(context_t* context)
                 break;
 
             default:
-                printf("Invalid session type %d\n", context->type);
+                croak("Invalid session type %d", context->type);
                 ret = 0;
                 break;
         }
@@ -251,13 +254,12 @@ void context_session_open(context_t* context)
 void context_session_close(context_t* context)
 {
     if (!context->session) {
-        printf("Can't close session, none exists\n");
+        warn("Can't close session, none exists");
         return;
     }
 
     /* No return value, cannot fail */
     nghttp2_session_del(context->session);
-
     context->session = 0;
 }
 
@@ -266,7 +268,7 @@ void context_session_terminate(context_t* context, int reason)
     int ret = 0;
 
     if (!context->session) {
-        printf("Can't terminate session, none exists\n");
+        warn("Can't terminate session, none exists");
         return;
     }
 
@@ -280,7 +282,7 @@ void context_session_terminate(context_t* context, int reason)
 int context_session_want_read(context_t* context)
 {
     if (!context->session) {
-        printf("Can't inquire want_read from session, none exists\n");
+        warn("Can't inquire want_read from session, none exists");
         return 0;
     }
 
@@ -291,7 +293,7 @@ int context_session_want_read(context_t* context)
 int context_session_want_write(context_t* context)
 {
     if (!context->session) {
-        printf("Can't inquire want_write from session, none exists\n");
+        warn("Can't inquire want_write from session, none exists");
         return 0;
     }
 
