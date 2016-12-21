@@ -79,7 +79,7 @@ tcp_connect("http2bin.org", 80, sub {
         [ ":path" => $path ],
         [ "user-agent" => $user_agent ],
     ]);
-    printf("Submitted request for [%s] => %d\n", $path, $stream_id);
+    printf("Submitted request for [%s] => stream_id %d\n", $path, $stream_id);
 
     $cv->begin();
     $path = "/stream/5";
@@ -90,7 +90,7 @@ tcp_connect("http2bin.org", 80, sub {
         [ ":path" => $path ],
         [ "user-agent" => $user_agent ],
     ]);
-    printf("Submitted request for [%s] => %d\n", $path, $stream_id);
+    printf("Submitted request for [%s] => stream_id %d\n", $path, $stream_id);
 });
 
 $cv->recv();
