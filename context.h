@@ -77,7 +77,9 @@ int context_session_want_write(context_t* context);
  * nghttp2_submit_window_update
  * nghttp2_submit_shutdown_notice (server-only)
  *
+ *
  * Maybe add support for other callbacks:
+ *
  * nghttp2_on_begin_frame_callback
  * nghttp2_on_invalid_frame_recv_callback
  * nghttp2_on_frame_send_callback
