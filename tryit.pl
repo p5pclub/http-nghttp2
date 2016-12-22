@@ -23,7 +23,6 @@ tcp_connect("http2bin.org", 80, sub {
             my ($length, $flags) = @_;
             my $data;
             unless ($fh->sysread($data, $length)) {
-                print "$!\n";
                 return undef if $!{EAGAIN};
                 die "read failed: $!\n";
             }
