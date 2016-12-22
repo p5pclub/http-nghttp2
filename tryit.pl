@@ -41,10 +41,15 @@ tcp_connect("http2bin.org", 80, sub {
             return 0;
         },
 
+        on_frame_recv => sub {
+            my ($frame_type, $frame_len, $stream_id) = @_;
+            print "[$stream_id] F: type $frame_type, $frame_len bytes\n";
+            return 0;
+        },
+
         on_data_chunk_recv => sub {
             my ($stream_id, $flags, $data) = @_;
             print "[$stream_id] D: $data\n";
-
             return 0;
         },
 
