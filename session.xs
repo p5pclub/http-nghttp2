@@ -9,22 +9,20 @@
 typedef context_t* NGHTTP2__Session;
 
 static void handle_options(pTHX_ context_t* context, HV* opt) {
-#define getter(name) {\
-    SV **svp = hv_fetchs(opt, #name, 0); \
-    context->cb.name = svp ? SvREFCNT_inc(*svp) : 0; \
-}
-    CALLBACK_LIST(getter);
+#define getter(name) { \
+        SV **svp = hv_fetchs(opt, #name, 0); \
+        context->cb.name = svp ? SvREFCNT_inc(*svp) : 0; \
+    }
+    CALLBACK_LIST(getter)
 #undef getter
 }
 
 static int session_dtor(pTHX_ SV *sv, MAGIC *mg) {
     context_t *ctx = (context_t*) mg->mg_ptr;
 #define cleanup(name) SvREFCNT_dec(ctx->cb.name)
-    CALLBACK_LIST(cleanup);
+    CALLBACK_LIST(cleanup)
 #undef cleanup
-
     context_dtor(ctx);
-
     return 0;
 }
 
@@ -84,6 +82,7 @@ int
 want_read(context_t* context)
 CODE:
 {
+    /* TODO: figure out if we need this exposed */
     RETVAL = context_session_want_read(context);
 }
 OUTPUT: RETVAL
@@ -92,6 +91,7 @@ int
 want_write(context_t* context)
 CODE:
 {
+    /* TODO: figure out if we need this exposed */
     RETVAL = context_session_want_write(context);
 }
 OUTPUT: RETVAL
@@ -135,7 +135,7 @@ CODE:
     nvlen = av_top_index(headers) + 1;
     Newx(nva, nvlen, nghttp2_nv);
     SAVEFREEPV(nva);
-    for(i = 0; i < nvlen; i++) {
+    for (i = 0; i < nvlen; i++) {
         SV** hdr;
         SV** key;
         SV** val;
