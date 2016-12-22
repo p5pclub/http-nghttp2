@@ -16,22 +16,17 @@ tcp_connect("http2bin.org", 80, sub {
     $session = NGHTTP2::Session->new({
         send => sub {
             my ($data, $flags) = @_;
-            printf("# send=%s\n", unpack("h*", $data));
             return $fh->syswrite($data);
         },
 
         recv => sub {
             my ($length, $flags) = @_;
-
-            print "# recv=$length: ";
-
             my $data;
             unless ($fh->sysread($data, $length)) {
                 print "$!\n";
                 return undef if $!{EAGAIN};
                 die "read failed: $!\n";
             }
-            printf("%s\n", unpack("h*", $data));
             return $data;
         },
 
