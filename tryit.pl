@@ -29,6 +29,12 @@ tcp_connect("http2bin.org", 80, sub {
             return $data;
         },
 
+        on_begin_headers => sub {
+            my ($frame_type, $frame_len, $stream_id) = @_;
+            print "[$stream_id] B: type $frame_type, $frame_len bytes\n";
+            return 0;
+        },
+
         on_header => sub {
             my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
             print "[$stream_id] H: $name = $value\n";
