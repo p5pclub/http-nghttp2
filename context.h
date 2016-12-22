@@ -33,8 +33,8 @@ typedef struct {
     nghttp2_session* session;
 
     struct cb {
-#define field(name) SV* name;
-        CALLBACK_LIST(field);
+#define field(name) SV* name
+        CALLBACK_LIST(field)
 #undef field
     } cb;
 } context_t;

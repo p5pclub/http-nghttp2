@@ -207,9 +207,11 @@ void context_session_open(context_t* context)
             break;
         }
 
-#define install(name) if (context->cb.name)                                   \
-            nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb);
-        CALLBACK_LIST(install);
+#define install(name) \
+        if (context->cb.name) { \
+            nghttp2_session_callbacks_set_##name##_callback(callbacks, name##_cb); \
+        }
+        CALLBACK_LIST(install)
 #undef install
 
         switch (context->type) {
