@@ -98,13 +98,14 @@ sub _build_connection {
 
         my $session;
         $session = NGHTTP2::Session->new({
-            'send' => sub {
+            send => sub {
                 my ($data, $flags) = @_;
+                # debugging
                 #printf("# send=%s\n", unpack("h*", $data));
                 return $fh->syswrite($data);
             },
 
-            'recv' => sub {
+            recv => sub {
                 my ($length, $flags) = @_;
 
                 # debugging
@@ -135,14 +136,14 @@ sub _build_connection {
                 );
             },
 
-            'on_header' => sub {
+            on_header => sub {
                 my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
                 return $inself->on_header->(
                     $session, $frame_type, $stream_id, $name, $value,
                 );
             },
 
-            'on_data_chunk_recv' => sub {
+            on_data_chunk_recv => sub {
                 my ($stream_id, $flags, $data) = @_;
 
                 $has_on_done
@@ -153,7 +154,7 @@ sub _build_connection {
                 );
             },
 
-            'on_stream_close' => sub {
+            on_stream_close => sub {
                 my ($stream_id, $error_code ) = @_;
 
                 if ($has_on_done) {
