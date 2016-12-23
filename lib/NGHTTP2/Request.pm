@@ -1,4 +1,5 @@
 package NGHTTP2::Request;
+# ABSTRACT: An NGHTTP2 request object
 
 use Moo;
 use MooX::Types::MooseLike::Base qw< Str Int >;

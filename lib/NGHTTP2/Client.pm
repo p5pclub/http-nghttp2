@@ -1,4 +1,5 @@
 package NGHTTP2::Client;
+# ABSTRACT: An NGHTTP2 client library
 
 use Moo;
 use MooX::Types::MooseLike::Base qw< Str Int HashRef CodeRef Object >;

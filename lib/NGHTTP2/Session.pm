@@ -1,4 +1,5 @@
 package NGHTTP2::Session;
+# ABSTRACT: Low-level access to the NGHTTP2 C library
 
 use strict;
 use warnings;
