@@ -51,7 +51,7 @@ has 'session' => (
 );
 
 # For the protocol
-has [qw<on_connect on_header on_stream_close on_data_chunk_recv>] => (
+has [qw<on_connect on_header on_stream_close on_frame_recv on_data_chunk_recv>] => (
     'is'       => 'ro',
     'isa'      => CodeRef,
     'required' => 1,
@@ -128,9 +128,11 @@ sub _build_connection {
                 return $data;
             },
 
-            'on_frame_recv' => sub {
-                # FIXME: Does this even run???
-                return 0;
+            on_frame_recv => sub {
+                my ($frame_type, $frame_len, $stream_id) = @_;
+                return $inself->on_frame_recv->(
+                    $session, $frame_type, $frame_len, $stream_id,
+                );
             },
 
             'on_header' => sub {
