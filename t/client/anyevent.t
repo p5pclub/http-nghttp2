@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More 'tests' => 5;
+use Test::More 'tests' => 6;
 use NGHTTP2::Client;
 use NGHTTP2::Request;
 
@@ -9,7 +9,7 @@ or plan 'skip_all' => 'You need AnyEvent to run this test';
 
 my $cv = AE::cv;
 
-my ( $data_chunk, $header );
+my ( $data_chunk, $header, $frame_recv );
 my $client = NGHTTP2::Client->new(
     'host' => 'http2bin.org',
     'port' => 80,
@@ -24,7 +24,7 @@ my $client = NGHTTP2::Client->new(
                 'scheme'    => 'http',
                 'authority' => 'http2bin.org',
                 'path'      => '/ip',
-            )->finalize
+            )->finalize,
         );
 
         return 0;
@@ -40,10 +40,10 @@ my $client = NGHTTP2::Client->new(
     },
 
     'on_frame_recv' => sub {
-        TODO: {
-            local $TODO = 'on_frame_recv is not called';
-            ok( 1, 'on_frame_recv called' );
-        }
+        $frame_recv++
+            and return 0;
+
+        ok( 1, 'on_frame_recv called' );
 
         return 0;
     },
