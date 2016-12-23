@@ -33,8 +33,9 @@ README
 !LICENSE
 *.o
 *.bs
-*.swp
+*.sw?
 *.tar.gz
 wrapper.c
 session.c
 wrapper/
+HTTP-NGHTTP2-*
