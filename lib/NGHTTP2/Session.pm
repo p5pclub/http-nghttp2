@@ -5,7 +5,7 @@ use warnings;
 
 use XSLoader;
 
-our $VERSION = '0.000002';
+our $VERSION = '0.000003';
 XSLoader::load(__PACKAGE__, $VERSION);
 
 1;
@@ -18,15 +18,17 @@ __END__
 
 =head1 NAME
 
-NGHTTP2::Session - Perl binding for nghttp2 library
+L<NGHTTP2::Session> - Perl binding for nghttp2 library
 
 =head1 VERSION
 
-Version 0.000002
+Version 0.000003
 
 =head1 SYNOPSIS
 
 =head1 DESCRIPTION
+
+This module wraps the L<https://nghttp2.org/> HTTP2 client / server library.
 
 =head1 AUTHORS
 
@@ -39,5 +41,13 @@ Version 0.000002
 =item * Andrei Vereha C<< avereha AT cpan DOT org >>
 
 =item * Vickenty Fesunov C<< kent AT setattr DOT net >>
+
+=back
+
+=head1 THANKS
+
+=over 4
+
+=item * The C<Nghttp2> team at L<https://nghttp2.org/>
 
 =back

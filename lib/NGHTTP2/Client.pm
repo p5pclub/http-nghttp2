@@ -13,6 +13,8 @@ use AnyEvent::Handle;
 use NGHTTP2::Session;
 use NGHTTP2::Request;
 
+our $VERSION = '0.000003';
+
 has 'host' => (
     'is'       => 'ro',
     'isa'      => Str,
@@ -215,3 +217,45 @@ sub request {
 }
 
 1;
+
+__END__
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+L<NGHTTP2::Client> -- Perl binding for nghttp2 library
+
+=head1 VERSION
+
+Version 0.000003
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+This module wraps the L<https://nghttp2.org/> HTTP2 client / server library.
+
+=head1 AUTHORS
+
+=over 4
+
+=item * Gonzalo Diethelm C<< gonzus AT cpan DOT org >>
+
+=item * Sawyer X C<< xsawyerx AT cpan DOT org >>
+
+=item * Andrei Vereha C<< avereha AT cpan DOT org >>
+
+=item * Vickenty Fesunov C<< kent AT setattr DOT net >>
+
+=back
+
+=head1 THANKS
+
+=over 4
+
+=item * The C<Nghttp2> team at L<https://nghttp2.org/>
+
+=back
