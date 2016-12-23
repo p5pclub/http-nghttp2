@@ -1,0 +1,45 @@
+# NAME
+
+NGHTTP2::Client - An NGHTTP2 client library
+
+# VERSION
+
+version 0.003
+
+# SYNOPSIS
+
+# DESCRIPTION
+
+This module wraps the [https://nghttp2.org/](https://nghttp2.org/) HTTP2 client / server library.
+
+# NAME
+
+[NGHTTP2::Client](https://metacpan.org/pod/NGHTTP2::Client) -- Perl binding for nghttp2 library
+
+# VERSION
+
+Version 0.000003
+
+# AUTHORS
+
+- Gonzalo Diethelm `gonzus AT cpan DOT org`
+- Sawyer X `xsawyerx AT cpan DOT org`
+- Andrei Vereha `avereha AT cpan DOT org`
+- Vickenty Fesunov `kent AT setattr DOT net`
+
+# THANKS
+
+- The `Nghttp2` team at [https://nghttp2.org/](https://nghttp2.org/)
+
+# AUTHORS
+
+- Gonzalo Diethelm <gonzus@cpan.org>
+- Sawyer X <xsawyerx@cpan.org>
+
+# COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2016 by Gonzalo Diethelm.
+
+This is free software, licensed under:
+
+    The MIT (X11) License
