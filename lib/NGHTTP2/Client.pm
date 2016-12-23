@@ -14,8 +14,6 @@ use AnyEvent::Handle;
 use NGHTTP2::Session;
 use NGHTTP2::Request;
 
-our $VERSION = '0.000003';
-
 has 'host' => (
     'is'       => 'ro',
     'isa'      => Str,
@@ -224,14 +222,6 @@ __END__
 =pod
 
 =encoding utf8
-
-=head1 NAME
-
-L<NGHTTP2::Client> -- Perl binding for nghttp2 library
-
-=head1 VERSION
-
-Version 0.000003
 
 =head1 SYNOPSIS
 

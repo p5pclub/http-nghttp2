@@ -6,8 +6,7 @@ use warnings;
 
 use XSLoader;
 
-our $VERSION = '0.000003';
-XSLoader::load(__PACKAGE__, $VERSION);
+XSLoader::load(__PACKAGE__, $NGHTTP2::Session::VERSION);
 
 1;
 

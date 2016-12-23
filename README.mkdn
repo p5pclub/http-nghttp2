@@ -12,14 +12,6 @@ version 0.003
 
 This module wraps the [https://nghttp2.org/](https://nghttp2.org/) HTTP2 client / server library.
 
-# NAME
-
-[NGHTTP2::Client](https://metacpan.org/pod/NGHTTP2::Client) -- Perl binding for nghttp2 library
-
-# VERSION
-
-Version 0.000003
-
 # AUTHORS
 
 - Gonzalo Diethelm `gonzus AT cpan DOT org`
