@@ -117,8 +117,7 @@ sub _build_connection {
                     #print "$!\n";
 
                     # We're done
-                    $!{'EAGAIN'}
-                        and return;
+                    return undef if $!{EAGAIN};
 
                     die "Unknown error: $!\n";
                 }
@@ -139,7 +138,8 @@ sub _build_connection {
             on_header => sub {
                 my ($frame_type, $frame_len, $stream_id, $name, $value) = @_;
                 return $inself->on_header->(
-                    $session, $frame_type, $stream_id, $name, $value,
+                    $session, $frame_type, $frame_len, $stream_id,
+                    $name, $value,
                 );
             },
 
