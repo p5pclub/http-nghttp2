@@ -146,6 +146,7 @@ sub _build_connection {
             on_data_chunk_recv => sub {
                 my ($stream_id, $flags, $data) = @_;
 
+                # TODO: this should be done at the caller, not here
                 $has_on_done
                     and $stream_responses->{$stream_id} .= $data;
 
@@ -157,6 +158,8 @@ sub _build_connection {
             on_stream_close => sub {
                 my ($stream_id, $error_code ) = @_;
 
+                # TODO: this should be done at the caller, not here
+                # TODO: get rid of on_done
                 if ($has_on_done) {
                     my $data = $self->get_stream_response($stream_id);
                     $self->on_done->( $stream_id, $data );
