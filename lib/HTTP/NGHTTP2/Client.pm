@@ -228,25 +228,3 @@ __END__
 =head1 DESCRIPTION
 
 This module wraps the L<https://nghttp2.org/> HTTP2 client / server library.
-
-=head1 AUTHORS
-
-=over 4
-
-=item * Gonzalo Diethelm C<< gonzus AT cpan DOT org >>
-
-=item * Sawyer X C<< xsawyerx AT cpan DOT org >>
-
-=item * Andrei Vereha C<< avereha AT cpan DOT org >>
-
-=item * Vickenty Fesunov C<< kent AT setattr DOT net >>
-
-=back
-
-=head1 THANKS
-
-=over 4
-
-=item * The C<Nghttp2> team at L<https://nghttp2.org/>
-
-=back

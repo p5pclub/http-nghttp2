@@ -1,6 +1,6 @@
 # NAME
 
-HTTP::NGHTTP2::Client - An NGHTTP2 client library
+HTTP::NGHTTP2 - NGHTTP2 HTTP client library bindings
 
 # VERSION
 
@@ -12,21 +12,22 @@ version 0.003
 
 This module wraps the [https://nghttp2.org/](https://nghttp2.org/) HTTP2 client / server library.
 
-# AUTHORS
+# CURRENTLY SUPPORTED
 
-- Gonzalo Diethelm `gonzus AT cpan DOT org`
-- Sawyer X `xsawyerx AT cpan DOT org`
-- Andrei Vereha `avereha AT cpan DOT org`
-- Vickenty Fesunov `kent AT setattr DOT net`
+We currently support only the client library, but in time might add
+support for the server library. Patches welcome.  :)
 
 # THANKS
 
-- The `Nghttp2` team at [https://nghttp2.org/](https://nghttp2.org/)
+- The `nghttp2` team at [https://nghttp2.org/](https://nghttp2.org/)
 
 # AUTHORS
 
 - Gonzalo Diethelm <gonzus@cpan.org>
 - Sawyer X <xsawyerx@cpan.org>
+- Andrei Vereha <avereha@cpan.org>
+- Vickenty Fesunov <kent@setattr.net>
+- Mickey Nasriachi <mickey@cpan.org>
 
 # COPYRIGHT AND LICENSE
 
