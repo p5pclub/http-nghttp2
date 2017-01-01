@@ -1,16 +1,13 @@
 use strict;
 use warnings;
 
-use FindBin;
-use lib "$FindBin::Bin/../tlib";
-
 use Test::More;
 use HTTP::NGHTTP2::Session;
-use HTTP::NGHTTP2::Trap;
+use t::lib::HTTP::NGHTTP2::Trap;
 
 my $buffer;
 my $headers;
-my $bad_val = HTTP::NGHTTP2::Trap->new(sub { @$headers = () });
+my $bad_val = t::lib::HTTP::NGHTTP2::Trap->new(sub { @$headers = () });
 $headers = [ [ "inno"."cent", $bad_val ] ];
 
 my $session = HTTP::NGHTTP2::Session->new({

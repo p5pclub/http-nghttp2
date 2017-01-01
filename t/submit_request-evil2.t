@@ -1,17 +1,14 @@
 use strict;
 use warnings;
 
-use FindBin;
-use lib "$FindBin::Bin/../tlib";
-
 use Test::More;
 use HTTP::NGHTTP2::Session;
-use HTTP::NGHTTP2::Trap;
+use t::lib::HTTP::NGHTTP2::Trap;
 
 my $buffer;
 my $headers;
 
-my $bad_val = HTTP::NGHTTP2::Trap->new(sub {
+my $bad_val = t::lib::HTTP::NGHTTP2::Trap->new(sub {
     $headers->[0][0] = "very long string that forces pv buffer to be reallocated for sure";
 });
 
