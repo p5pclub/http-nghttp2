@@ -1,4 +1,4 @@
-package NGHTTP2::Session;
+package HTTP::NGHTTP2::Session;
 # ABSTRACT: Low-level access to the NGHTTP2 C library
 
 use strict;
@@ -6,7 +6,7 @@ use warnings;
 
 use XSLoader;
 
-XSLoader::load(__PACKAGE__, $NGHTTP2::Session::VERSION);
+XSLoader::load(__PACKAGE__, $HTTP::NGHTTP2::Session::VERSION);
 
 1;
 
@@ -18,7 +18,7 @@ __END__
 
 =head1 NAME
 
-L<NGHTTP2::Session> - Perl binding for nghttp2 library
+L<HTTP::NGHTTP2::Session> - Perl binding for nghttp2 library
 
 =head1 VERSION
 

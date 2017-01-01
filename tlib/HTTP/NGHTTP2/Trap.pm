@@ -1,4 +1,4 @@
-package NGHTTP2::Trap;
+package HTTP::NGHTTP2::Trap;
 use strict;
 use warnings;
 

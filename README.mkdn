@@ -1,6 +1,6 @@
 # NAME
 
-NGHTTP2::Client - An NGHTTP2 client library
+HTTP::NGHTTP2::Client - An NGHTTP2 client library
 
 # VERSION
 

@@ -1,5 +1,5 @@
-package NGHTTP2::Request;
-# ABSTRACT: An NGHTTP2 request object
+package HTTP::NGHTTP2::Request;
+# ABSTRACT: An HTTP::NGHTTP2 request object
 
 use Moo;
 use MooX::Types::MooseLike::Base qw< Str Int >;
@@ -14,8 +14,8 @@ has 'user_agent' => (
     'is'      => 'ro',
     'isa'     => Str,
     'default' => sub {
-        my $version = $NGHTTP2::Client::VERSION || 'dev';
-        return "perl/NGHTTP2::Client/$version";
+        my $version = $HTTP::NGHTTP2::Client::VERSION || 'dev';
+        return "perl/HTTP::NGHTTP2::Client/$version";
     },
 );
 

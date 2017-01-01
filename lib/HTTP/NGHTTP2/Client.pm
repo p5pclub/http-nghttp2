@@ -1,4 +1,4 @@
-package NGHTTP2::Client;
+package HTTP::NGHTTP2::Client;
 # ABSTRACT: An NGHTTP2 client library
 
 use Moo;
@@ -11,8 +11,8 @@ use Scalar::Util ();
 use AnyEvent;
 use AnyEvent::Socket;
 use AnyEvent::Handle;
-use NGHTTP2::Session;
-use NGHTTP2::Request;
+use HTTP::NGHTTP2::Session;
+use HTTP::NGHTTP2::Request;
 
 has 'host' => (
     'is'       => 'ro',
@@ -98,7 +98,7 @@ sub _build_connection {
         my $fh = shift or Carp::croak('Failed to connect');
 
         my $session;
-        $session = NGHTTP2::Session->new({
+        $session = HTTP::NGHTTP2::Session->new({
             send => sub {
                 my ($data, $flags) = @_;
                 # debugging
@@ -203,13 +203,13 @@ sub request {
     my $request;
 
     if ( @_ == 1 ) {
-        if ( $_[0]->$_isa('NGHTTP2::Request') ) {
+        if ( $_[0]->$_isa('HTTP::NGHTTP2::Request') ) {
             $request = $_[0];
         } else {
             Carp::croak('Bad argument to request()');
         }
     } elsif ( @_ % 2 == 0 ) {
-        $request = NGHTTP2::Request->new(@_);
+        $request = HTTP::NGHTTP2::Request->new(@_);
     } else {
         Carp::croak('Bad arguments to request()');
     }

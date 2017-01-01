@@ -5,15 +5,15 @@ use FindBin;
 use lib "$FindBin::Bin/../tlib";
 
 use Test::More;
-use NGHTTP2::Session;
-use NGHTTP2::Trap;
+use HTTP::NGHTTP2::Session;
+use HTTP::NGHTTP2::Trap;
 
 my $buffer;
 my $headers;
-my $bad_val = NGHTTP2::Trap->new(sub { @$headers = () });
+my $bad_val = HTTP::NGHTTP2::Trap->new(sub { @$headers = () });
 $headers = [ [ "inno"."cent", $bad_val ] ];
 
-my $session = NGHTTP2::Session->new({
+my $session = HTTP::NGHTTP2::Session->new({
     send => sub { $buffer .= $_[0]; length($_[0]) },
 });
 $session->open_session();
