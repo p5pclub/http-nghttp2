@@ -1,5 +1,0 @@
-AE::Client
-AnyEvent::Session
-Session
-XS NGHTTP2
-C  NGHTTP2 library
