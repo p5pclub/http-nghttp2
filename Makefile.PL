@@ -17,6 +17,10 @@ WriteMakefile(
     },
     AUTHOR         => [
         'Gonzalo Diethelm (gonzus@cpan.org)',
+        'Sawyer X (xsawyerx@cpan.org)',
+        'Andrei Vereha (avereha@cpan.org)',
+        'Vickenty Fesunov (kent@setattr.net)',
+        'Mickey Nasriachi (mickey@cpan.org)',
     ],
     LIBS           => ['-lnghttp2'],
 #    DEFINE         => '-DGMEM_CHECK',
