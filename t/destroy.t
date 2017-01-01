@@ -1,10 +1,10 @@
 use strict;
 use warnings;
 use Test::More;
-use NGHTTP2::Session;
+use HTTP::NGHTTP2::Session;
 
 sub new_session {
-    return NGHTTP2::Session->new(
+    return HTTP::NGHTTP2::Session->new(
         {
             send => sub { },
             recv => sub { },
@@ -51,7 +51,7 @@ SKIP: {
 
     no_leaks_ok(
         sub {
-            my $s = NGHTTP2::Session->new(
+            my $s = HTTP::NGHTTP2::Session->new(
                 {
                     recv => sub { die "kaboom" },
                 }

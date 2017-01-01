@@ -1,15 +1,15 @@
 use strict;
 use warnings;
 use DDP;
-use NGHTTP2::Request;
-use NGHTTP2::Client;
+use HTTP::NGHTTP2::Request;
+use HTTP::NGHTTP2::Client;
 
 # Flush after every print
 local $| = 1;
 
 my $condvar = AE::cv;
 
-my $client = NGHTTP2::Client->new(
+my $client = HTTP::NGHTTP2::Client->new(
     host      => 'http2bin.org',
     port      => 80,
 
@@ -64,7 +64,7 @@ my $client = NGHTTP2::Client->new(
         $condvar->begin for @paths;
         foreach my $path (@paths) {
             my $stream_id = $session->submit_request(
-                NGHTTP2::Request->new( %args, path => $path)->finalize
+                HTTP::NGHTTP2::Request->new( %args, path => $path)->finalize
             );
             print "Submitted request for $path => stream id $stream_id\n";
         }

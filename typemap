@@ -23,6 +23,6 @@ O_SESSION
         {
             $var = (context_t*) mg->mg_ptr;
         } else {
-            croak(\"${Package}::$func_name() -- $var is not a valid NGHTTP2::Session object\");
+            croak(\"${Package}::$func_name() -- $var is not a valid HTTP::NGHTTP2::Session object\");
         }
     }

@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use Test::More 'tests' => 5;
-use NGHTTP2::Client;
+use HTTP::NGHTTP2::Client;
 use Scalar::Util ();
 
 eval { require POE; POE->import; 1; }
@@ -14,7 +14,7 @@ POE::Session->create(
             # not sure this needs to be weakened, but might as well
             Scalar::Util::weaken( my $heap = $_[ POE::Session::HEAP() ] );
 
-            $heap->{'client'} = NGHTTP2::Client->new(
+            $heap->{'client'} = HTTP::NGHTTP2::Client->new(
                 'host'       => 'http2bin.org',
                 'port'       => 80,
                 'on_connect' => sub {
@@ -22,7 +22,7 @@ POE::Session->create(
                     my $session = shift;
 
                     $session->submit_request(
-                        NGHTTP2::Request->new(
+                        HTTP::NGHTTP2::Request->new(
                             'method'    => 'GET',
                             'scheme'    => 'http',
                             'authority' => 'http2bin.org',

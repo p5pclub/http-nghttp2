@@ -6,7 +6,7 @@
 
 #include "context.h"
 
-typedef context_t* NGHTTP2__Session;
+typedef context_t* HTTP__NGHTTP2__Session;
 
 static void handle_options(pTHX_ context_t* context, HV* opt) {
 #define getter(name) { \
@@ -28,7 +28,7 @@ static int session_dtor(pTHX_ SV *sv, MAGIC *mg) {
 
 static MGVTBL session_magic_vtbl = { .svt_free = session_dtor };
 
-MODULE = NGHTTP2::Session        PACKAGE = NGHTTP2::Session
+MODULE = HTTP::NGHTTP2::Session        PACKAGE = HTTP::NGHTTP2::Session
 PROTOTYPES: DISABLE
 
 #################################################################

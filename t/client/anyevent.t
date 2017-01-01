@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 use Test::More 'tests' => 6;
-use NGHTTP2::Client;
-use NGHTTP2::Request;
+use HTTP::NGHTTP2::Client;
+use HTTP::NGHTTP2::Request;
 
 eval { require AnyEvent; AnyEvent->import; 1; }
 or plan 'skip_all' => 'You need AnyEvent to run this test';
@@ -10,7 +10,7 @@ or plan 'skip_all' => 'You need AnyEvent to run this test';
 my $cv = AE::cv;
 
 my ( $data_chunk, $header, $frame_recv );
-my $client = NGHTTP2::Client->new(
+my $client = HTTP::NGHTTP2::Client->new(
     'host' => 'http2bin.org',
     'port' => 80,
 
@@ -19,7 +19,7 @@ my $client = NGHTTP2::Client->new(
         my $session = shift;
 
         $session->submit_request(
-            NGHTTP2::Request->new(
+            HTTP::NGHTTP2::Request->new(
                 'method'    => 'GET',
                 'scheme'    => 'http',
                 'authority' => 'http2bin.org',
